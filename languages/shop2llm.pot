@@ -1,0 +1,1410 @@
+# Copyright (C) 2026 FinCore
+# This file is distributed under the GPL-2.0+.
+msgid ""
+msgstr ""
+"Project-Id-Version: Shop2LLM — AI Visibility 1.1.2\n"
+"Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/shop-to-llm\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"POT-Creation-Date: 2026-06-22T07:12:19+00:00\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"X-Generator: WP-CLI 2.12.0\n"
+"X-Domain: shop2llm\n"
+
+#. Plugin Name of the plugin
+#: shop-to-llm.php
+msgid "Shop2LLM — AI Visibility"
+msgstr ""
+
+#. Plugin URI of the plugin
+#. Author URI of the plugin
+#: shop-to-llm.php
+msgid "https://shop2llm.com/"
+msgstr ""
+
+#. Description of the plugin
+#: shop-to-llm.php
+msgid "Your WordPress site is invisible to ChatGPT, Perplexity, and AI search. Fix that in 2 clicks — Shop2LLM gives you a real-time AI visibility score, auto-generates llms.txt, and tracks 12 AI crawlers."
+msgstr ""
+
+#. Author of the plugin
+#: shop-to-llm.php
+msgid "FinCore"
+msgstr ""
+
+#: shop-to-llm.php:247
+msgid "Upgrade to Pro"
+msgstr ""
+
+#: shop-to-llm.php:269
+#, php-format
+msgid "🎉 %s just discovered your store!"
+msgstr ""
+
+#: shop-to-llm.php:269
+#, php-format
+msgid "🎉 %s just discovered your site!"
+msgstr ""
+
+#: shop-to-llm.php:270
+msgid "Your products are now visible to AI assistants. View your AI visibility dashboard:"
+msgstr ""
+
+#: shop-to-llm.php:270
+msgid "Your content is now visible to AI assistants. View your AI visibility dashboard:"
+msgstr ""
+
+#: shop-to-llm.php:271
+msgid "Open Shop2LLM Dashboard"
+msgstr ""
+
+#: shop-to-llm.php:292
+#, php-format
+msgid "🚀 %s — and AI consumers are already searching!"
+msgstr ""
+
+#: shop-to-llm.php:293
+msgid "Your store is live on AI. 174 other stores joined this week — your rating helps us grow!"
+msgstr ""
+
+#: shop-to-llm.php:293
+msgid "Your site is live on AI. 174 other sites joined this week — your rating helps us grow!"
+msgstr ""
+
+#: shop-to-llm.php:295
+msgid "⭐ Leave a Review on WP.org"
+msgstr ""
+
+#. translators: 1: number of crawler visits, 2: number of AI bots
+#: shop-to-llm.php:345
+#, php-format
+msgid "🤖 %1$d AI crawler visits from %2$d platforms this week"
+msgstr ""
+
+#. translators: %d: total crawler records
+#: shop-to-llm.php:351
+#, php-format
+msgid "%d total crawler records accumulated. View your AI visibility trends:"
+msgstr ""
+
+#: shop-to-llm.php:355
+msgid "Open Dashboard →"
+msgstr ""
+
+#: shop-to-llm.php:372
+msgid "WooCommerce is not active. Product-related features (product search, product feed, product AI score) are disabled. Blog and page content is still discoverable by AI. Install WooCommerce for full product AI visibility."
+msgstr ""
+
+#: shop-to-llm.php:400
+msgid "Your site is now visible to ChatGPT and AI assistants."
+msgstr ""
+
+#: shop-to-llm.php:411
+msgid "Open Dashboard"
+msgstr ""
+
+#: shop-to-llm.php:412
+msgid "Dismiss"
+msgstr ""
+
+#: shop-to-llm.php:438
+msgid "Rate us on WordPress.org"
+msgstr ""
+
+#: shop-to-llm.php:446
+#: shop-to-llm.php:603
+msgid "Wizard"
+msgstr ""
+
+#: shop-to-llm.php:450
+msgid "Close — will re-appear after 8 hours"
+msgstr ""
+
+#: shop-to-llm.php:462
+msgid "Check Your Products"
+msgstr ""
+
+#: shop-to-llm.php:463
+msgid "Enter a SKU in the Product AI Score card below to see which products need improvement for AI discovery."
+msgstr ""
+
+#: shop-to-llm.php:470
+msgid "Connect to ChatGPT"
+msgstr ""
+
+#: shop-to-llm.php:471
+msgid "Copy this link and add it to ChatGPT — then you can search your own products to verify everything works."
+msgstr ""
+
+#: shop-to-llm.php:474
+#: shop-to-llm.php:1145
+#: shop-to-llm.php:1152
+msgid "Copy"
+msgstr ""
+
+#: shop-to-llm.php:482
+msgid "Improve Product Pages"
+msgstr ""
+
+#: shop-to-llm.php:483
+msgid "AI prefers products with clear descriptions, images, and categories. Use the score card below to find what to fix."
+msgstr ""
+
+#: shop-to-llm.php:490
+msgid "Watch AI Activity Grow"
+msgstr ""
+
+#: shop-to-llm.php:491
+msgid "When customers ask AI about products you sell, their search terms and crawler visits will appear here on your dashboard."
+msgstr ""
+
+#: shop-to-llm.php:497
+msgid "Dismiss anytime."
+msgstr ""
+
+#: shop-to-llm.php:508
+msgid "Unauthorized"
+msgstr ""
+
+#: shop-to-llm.php:544
+msgid "Settings saved."
+msgstr ""
+
+#: shop-to-llm.php:591
+msgid "Get your products discovered by ChatGPT and AI-powered search engines."
+msgstr ""
+
+#: shop-to-llm.php:591
+msgid "Get your content discovered by ChatGPT and AI-powered search engines."
+msgstr ""
+
+#: shop-to-llm.php:596
+msgid "Content"
+msgstr ""
+
+#: shop-to-llm.php:600
+msgid "Store"
+msgstr ""
+
+#: shop-to-llm.php:623
+msgid "WooCommerce is not active. Product search by price/category/stock, product AI scoring, and product feed XML are unavailable. Install WooCommerce for the full experience."
+msgstr ""
+
+#: shop-to-llm.php:624
+msgid "Install →"
+msgstr ""
+
+#: shop-to-llm.php:644
+msgid "Store AI-Ready"
+msgstr ""
+
+#: shop-to-llm.php:644
+msgid "Site AI-Ready"
+msgstr ""
+
+#: shop-to-llm.php:644
+msgid "Schema + llms.txt + robots.txt auto-generated"
+msgstr ""
+
+#: shop-to-llm.php:645
+msgid "Products Indexed"
+msgstr ""
+
+#: shop-to-llm.php:645
+#, php-format
+msgid "%d content items discovered by AI crawlers"
+msgstr ""
+
+#: shop-to-llm.php:645
+msgid "Add products in WooCommerce → Products"
+msgstr ""
+
+#: shop-to-llm.php:645
+msgid "Add posts in WordPress → Posts"
+msgstr ""
+
+#: shop-to-llm.php:646
+msgid "AI Crawlers Found You"
+msgstr ""
+
+#: shop-to-llm.php:646
+#, php-format
+msgid "%d crawler visits today"
+msgstr ""
+
+#: shop-to-llm.php:646
+msgid "ChatGPT & other AIs will discover your store"
+msgstr ""
+
+#: shop-to-llm.php:646
+msgid "ChatGPT & other AIs will discover your site"
+msgstr ""
+
+#: shop-to-llm.php:647
+msgid "ChatGPT Connected"
+msgstr ""
+
+#: shop-to-llm.php:647
+#, php-format
+msgid "%d API calls today — store is live"
+msgstr ""
+
+#: shop-to-llm.php:647
+msgid "Paste MCP config into ChatGPT (see below)"
+msgstr ""
+
+#: shop-to-llm.php:648
+msgid "6 AI Platforms Live"
+msgstr ""
+
+#: shop-to-llm.php:648
+msgid "Claude, Gemini, Copilot, Meta AI, Bedrock — Pro only"
+msgstr ""
+
+#: shop-to-llm.php:660
+msgid "AI Growth Progress"
+msgstr ""
+
+#: shop-to-llm.php:660
+msgid "Track your progress toward full AI visibility. Complete all 5 milestones for maximum discoverability."
+msgstr ""
+
+#: shop-to-llm.php:686
+msgid "Store Live"
+msgstr ""
+
+#: shop-to-llm.php:687
+msgid "AI Discovered"
+msgstr ""
+
+#: shop-to-llm.php:688
+msgid "First Search"
+msgstr ""
+
+#: shop-to-llm.php:689
+msgid "Power User"
+msgstr ""
+
+#: shop-to-llm.php:713
+msgid "Go to Settings tab → Connection Config → paste into ChatGPT to reach the next milestone"
+msgstr ""
+
+#: shop-to-llm.php:718
+msgid "AI Visibility Summary"
+msgstr ""
+
+#: shop-to-llm.php:718
+msgid "Today's AI activity at a glance: API calls, crawler bots, searches, and tools available."
+msgstr ""
+
+#: shop-to-llm.php:722
+#: shop-to-llm.php:1113
+msgid "Connected"
+msgstr ""
+
+#: shop-to-llm.php:725
+#: shop-to-llm.php:1039
+#: shop-to-llm.php:1048
+#: shop-to-llm.php:1116
+msgid "Disabled"
+msgstr ""
+
+#: shop-to-llm.php:732
+msgid "API Calls"
+msgstr ""
+
+#: shop-to-llm.php:736
+msgid "AI Bots"
+msgstr ""
+
+#: shop-to-llm.php:740
+msgid "Searches"
+msgstr ""
+
+#: shop-to-llm.php:744
+msgid "AI Tools"
+msgstr ""
+
+#: shop-to-llm.php:749
+msgid "👋 New here? Go to Settings → Connection Config → paste into ChatGPT"
+msgstr ""
+
+#: shop-to-llm.php:753
+msgid "💡 How to read this"
+msgstr ""
+
+#: shop-to-llm.php:755
+msgid "Each API call = an AI assistant connected to your site."
+msgstr ""
+
+#: shop-to-llm.php:756
+msgid "Each crawler visit = an AI search engine indexed your content."
+msgstr ""
+
+#: shop-to-llm.php:757
+msgid "More activity → better AI visibility → more organic traffic."
+msgstr ""
+
+#: shop-to-llm.php:759
+msgid "AI activity will appear here as ChatGPT and other AI assistants discover your store. Copy your connection config from the Settings tab and paste into ChatGPT to get started."
+msgstr ""
+
+#: shop-to-llm.php:759
+msgid "AI activity will appear here as ChatGPT and other AI assistants discover your site. Copy your connection config from the Settings tab and paste into ChatGPT to get started."
+msgstr ""
+
+#: shop-to-llm.php:762
+msgid "Check the Analytics tab for detailed trends and top search terms"
+msgstr ""
+
+#: shop-to-llm.php:769
+msgid "AI-Driven Traffic"
+msgstr ""
+
+#: shop-to-llm.php:769
+msgid "Visitors who found your site through AI platforms like ChatGPT, Perplexity, and Copilot."
+msgstr ""
+
+#: shop-to-llm.php:772
+msgid "Connect more AI platforms in Pro to increase AI-driven traffic"
+msgstr ""
+
+#: shop-to-llm.php:784
+msgid "AI Crawler Activity"
+msgstr ""
+
+#: shop-to-llm.php:784
+msgid "Track when AI crawlers like GPTBot and ClaudeBot visit your site. More visits = better AI visibility."
+msgstr ""
+
+#: shop-to-llm.php:788
+msgid "Share your content regularly — AI crawlers return more often to sites that update frequently"
+msgstr ""
+
+#: shop-to-llm.php:834
+msgid "How You Compare"
+msgstr ""
+
+#: shop-to-llm.php:834
+msgid "See how your AI visibility stacks up against other free users and Pro subscribers."
+msgstr ""
+
+#: shop-to-llm.php:839
+msgid "Metric"
+msgstr ""
+
+#: shop-to-llm.php:840
+msgid "You"
+msgstr ""
+
+#: shop-to-llm.php:841
+msgid "Avg Free"
+msgstr ""
+
+#: shop-to-llm.php:842
+msgid "Pro Users"
+msgstr ""
+
+#: shop-to-llm.php:847
+msgid "AI Visibility Score"
+msgstr ""
+
+#: shop-to-llm.php:853
+#: shop-to-llm.php:1160
+msgid "AI Platforms"
+msgstr ""
+
+#: shop-to-llm.php:859
+msgid "Data Retention"
+msgstr ""
+
+#: shop-to-llm.php:865
+msgid "Products"
+msgstr ""
+
+#: shop-to-llm.php:865
+msgid "Content Items"
+msgstr ""
+
+#: shop-to-llm.php:872
+msgid "Pro users score 82+ on average — upgrade to unlock 6 AI platforms and always-on connection"
+msgstr ""
+
+#: shop-to-llm.php:880
+msgid "AI Search Activity"
+msgstr ""
+
+#: shop-to-llm.php:880
+msgid "See what consumers are asking AI assistants about your content. Shows search terms, results, and timing."
+msgstr ""
+
+#: shop-to-llm.php:883
+msgid "No AI searches today yet. When a consumer asks an AI (like ChatGPT) about your products, the search terms and matched products will appear here — so you can see what consumers are asking AI about your store."
+msgstr ""
+
+#: shop-to-llm.php:883
+msgid "No AI searches today yet. When a consumer asks an AI (like ChatGPT) about your content, the search terms and matched items will appear here — so you can see what consumers are asking AI about your site."
+msgstr ""
+
+#. translators: %d: number of searches
+#: shop-to-llm.php:887
+#, php-format
+msgid "What consumers asked AI about your store today (%d searches):"
+msgstr ""
+
+#. translators: %d: number of searches
+#: shop-to-llm.php:887
+#, php-format
+msgid "What consumers asked AI about your site today (%d searches):"
+msgstr ""
+
+#: shop-to-llm.php:889
+msgid "Latest first"
+msgstr ""
+
+#: shop-to-llm.php:890
+msgid "Oldest first"
+msgstr ""
+
+#: shop-to-llm.php:891
+msgid "Most results"
+msgstr ""
+
+#: shop-to-llm.php:892
+msgid "Fewest results"
+msgstr ""
+
+#: shop-to-llm.php:898
+msgid "Search Term"
+msgstr ""
+
+#: shop-to-llm.php:899
+msgid "Products Found"
+msgstr ""
+
+#: shop-to-llm.php:900
+msgid "Results"
+msgstr ""
+
+#: shop-to-llm.php:901
+msgid "Time"
+msgstr ""
+
+#. translators: %d: number of found results
+#: shop-to-llm.php:920
+#, php-format
+msgid "%d found"
+msgstr ""
+
+#: shop-to-llm.php:922
+msgid "No match"
+msgstr ""
+
+#. translators: %d: number of searches
+#: shop-to-llm.php:931
+#, php-format
+msgid "Showing latest 15 of %d searches. Upgrade to Pro for full search analytics."
+msgstr ""
+
+#: shop-to-llm.php:934
+msgid "Use these search terms to improve your content and Focus Queries"
+msgstr ""
+
+#: shop-to-llm.php:954
+msgid "Product Name"
+msgstr ""
+
+#: shop-to-llm.php:955
+msgid "Short Description"
+msgstr ""
+
+#: shop-to-llm.php:956
+msgid "Full Description"
+msgstr ""
+
+#: shop-to-llm.php:957
+msgid "Product Images"
+msgstr ""
+
+#: shop-to-llm.php:958
+msgid "Price Set"
+msgstr ""
+
+#: shop-to-llm.php:959
+msgid "Categories"
+msgstr ""
+
+#: shop-to-llm.php:960
+msgid "Tags"
+msgstr ""
+
+#: shop-to-llm.php:961
+msgid "Stock Managed"
+msgstr ""
+
+#: shop-to-llm.php:962
+msgid "Attributes / Specs"
+msgstr ""
+
+#: shop-to-llm.php:974
+#: shop-to-llm.php:1013
+msgid "Product AI Score"
+msgstr ""
+
+#: shop-to-llm.php:974
+#: shop-to-llm.php:1013
+msgid "Check individual product readiness for AI discovery. Enter SKU or name to see a scored breakdown."
+msgstr ""
+
+#: shop-to-llm.php:976
+msgid "Enter SKU or product name"
+msgstr ""
+
+#: shop-to-llm.php:977
+msgid "Check"
+msgstr ""
+
+#: shop-to-llm.php:987
+msgid "AI readiness score for this product"
+msgstr ""
+
+#: shop-to-llm.php:998
+msgid "Fix →"
+msgstr ""
+
+#: shop-to-llm.php:1005
+msgid "Product not found. Try a different SKU or keyword."
+msgstr ""
+
+#: shop-to-llm.php:1007
+msgid "Enter a product SKU or name to see its AI readiness score. A higher score means AI is more likely to recommend this product to shoppers."
+msgstr ""
+
+#: shop-to-llm.php:1009
+#: shop-to-llm.php:1019
+msgid "Use the editor S2LL Score panel for detailed per-product optimization"
+msgstr ""
+
+#: shop-to-llm.php:1015
+msgid "This feature requires WooCommerce."
+msgstr ""
+
+#: shop-to-llm.php:1016
+msgid "Install WooCommerce to unlock: product AI scoring, search by price/category/stock, and product feed XML."
+msgstr ""
+
+#: shop-to-llm.php:1017
+msgid "Install WooCommerce →"
+msgstr ""
+
+#: shop-to-llm.php:1030
+msgid "Settings"
+msgstr ""
+
+#: shop-to-llm.php:1030
+msgid "Configure which features are active. All changes take effect immediately."
+msgstr ""
+
+#: shop-to-llm.php:1035
+msgid "Enable"
+msgstr ""
+
+#: shop-to-llm.php:1038
+msgid "Enabled — store is visible to AI agents"
+msgstr ""
+
+#: shop-to-llm.php:1044
+msgid "Product Search"
+msgstr ""
+
+#: shop-to-llm.php:1047
+msgid "Enabled — AI can search your catalog"
+msgstr ""
+
+#: shop-to-llm.php:1053
+msgid "Analytics"
+msgstr ""
+
+#: shop-to-llm.php:1056
+msgid "Disabled — no data sent"
+msgstr ""
+
+#: shop-to-llm.php:1057
+msgid "Enabled — share anonymized site metadata &amp; AI crawler visits for analytics"
+msgstr ""
+
+#: shop-to-llm.php:1059
+msgid "When enabled, basic site metadata and AI crawler visits are sent to our cloud service. No personal customer or order data is transmitted. Privacy Policy: https://shop2llm.com/privacy"
+msgstr ""
+
+#: shop-to-llm.php:1063
+msgid "AI Badge"
+msgstr ""
+
+#: shop-to-llm.php:1066
+msgid "Show — display AI Discoverable badge on your site"
+msgstr ""
+
+#: shop-to-llm.php:1067
+msgid "Hidden"
+msgstr ""
+
+#: shop-to-llm.php:1069
+msgid "Adds a small badge in the footer indicating your site is AI-discoverable. Links to your public /ai-visibility/ page."
+msgstr ""
+
+#: shop-to-llm.php:1073
+msgid "Entity Checks"
+msgstr ""
+
+#: shop-to-llm.php:1077
+msgid "Enable external knowledge graph checks (Wikidata/Wikipedia)"
+msgstr ""
+
+#: shop-to-llm.php:1079
+msgid "This sends your focus query to public APIs to check entity presence. No personal data is transmitted."
+msgstr ""
+
+#: shop-to-llm.php:1083
+msgid "Cart & Checkout"
+msgstr ""
+
+#: shop-to-llm.php:1085
+#: shop-to-llm.php:1170
+#: shop-to-llm.php:1175
+#: shop-to-llm.php:1180
+#: shop-to-llm.php:1185
+#: shop-to-llm.php:1190
+msgid "Pro"
+msgstr ""
+
+#: shop-to-llm.php:1086
+msgid "AI agents add to cart, checkout, and track orders"
+msgstr ""
+
+#: shop-to-llm.php:1090
+msgid "Enable Entity Checks for more accurate AI visibility scores"
+msgstr ""
+
+#: shop-to-llm.php:1091
+msgid "Save Settings"
+msgstr ""
+
+#: shop-to-llm.php:1108
+msgid "Test It Yourself"
+msgstr ""
+
+#: shop-to-llm.php:1108
+msgid "Connect your site to ChatGPT and other AI tools. Copy-paste this config to make your content AI-accessible."
+msgstr ""
+
+#: shop-to-llm.php:1110
+msgid "Status"
+msgstr ""
+
+#: shop-to-llm.php:1120
+msgid "Paste this config into your ChatGPT to verify your store is AI-ready. This connects your ChatGPT to your store — a quick way to confirm everything works."
+msgstr ""
+
+#: shop-to-llm.php:1120
+msgid "Paste this config into your ChatGPT to verify your site is AI-ready. This connects your ChatGPT to your site — a quick way to confirm everything works."
+msgstr ""
+
+#: shop-to-llm.php:1122
+msgid "💡 Consumers can't search your store yet. This config only connects your own ChatGPT. For consumers to discover your products through ChatGPT, Claude, Gemini and more, you need the always-on cloud connection — available in Pro."
+msgstr ""
+
+#: shop-to-llm.php:1122
+msgid "💡 Consumers can't search your site yet. This config only connects your own ChatGPT. For consumers to discover your content through ChatGPT, Claude, Gemini and more, you need the always-on cloud connection — available in Pro."
+msgstr ""
+
+#: shop-to-llm.php:1130
+msgid "Copy Config"
+msgstr ""
+
+#: shop-to-llm.php:1133
+msgid "Then: ChatGPT Desktop → Settings → Developer → Connect App → paste and save."
+msgstr ""
+
+#: shop-to-llm.php:1137
+msgid "👋 First time here? Copy the config above → paste into ChatGPT → your store goes live"
+msgstr ""
+
+#: shop-to-llm.php:1137
+msgid "👋 First time here? Copy the config above → paste into ChatGPT → your site goes live"
+msgstr ""
+
+#: shop-to-llm.php:1142
+msgid "API Key"
+msgstr ""
+
+#: shop-to-llm.php:1149
+msgid "AI Endpoint"
+msgstr ""
+
+#: shop-to-llm.php:1155
+msgid "After connecting, check the Dashboard tab to see AI activity"
+msgstr ""
+
+#: shop-to-llm.php:1160
+msgid "AI platforms your content can appear on. Free supports ChatGPT — Pro unlocks all 6 platforms."
+msgstr ""
+
+#: shop-to-llm.php:1165
+msgid "Free"
+msgstr ""
+
+#: shop-to-llm.php:1193
+msgid "Pro unlocks Claude, Gemini, Copilot, Meta AI, and Bedrock for complete AI coverage"
+msgstr ""
+
+#: shop-to-llm.php:1219
+msgid "stores added this week"
+msgstr ""
+
+#: shop-to-llm.php:1248
+msgid "2 AI tools (search, product detail) — 5 total with Pro"
+msgstr ""
+
+#: shop-to-llm.php:2067
+msgid "Shop2LLM product feed for ChatGPT, Bing Copilot, Google AI Overview, and Perplexity"
+msgstr ""
+
+#: shop-to-llm.php:2390
+msgid "No pages indexed yet. AI crawlers will discover your content over time."
+msgstr ""
+
+#: shop-to-llm.php:2397
+msgid "Recently Indexed Pages"
+msgstr ""
+
+#: shop-to-llm.php:2400
+msgid "Page"
+msgstr ""
+
+#: shop-to-llm.php:2401
+msgid "Crawler"
+msgstr ""
+
+#: shop-to-llm.php:2402
+msgid "Last Visit"
+msgstr ""
+
+#: shop-to-llm.php:2413
+msgid "ago"
+msgstr ""
+
+#: shop-to-llm.php:2476
+msgid "Shop2LLM Visibility"
+msgstr ""
+
+#: shop-to-llm.php:2583
+#, php-format
+msgid "%d AI crawler visit records"
+msgstr ""
+
+#: shop-to-llm.php:2586
+#, php-format
+msgid "%d AI traffic tracking records"
+msgstr ""
+
+#: shop-to-llm.php:2589
+#, php-format
+msgid "%d Focus Query configurations"
+msgstr ""
+
+#: shop-to-llm.php:2591
+msgid "all AI visibility scores and trend history"
+msgstr ""
+
+#: shop-to-llm.php:2596
+msgid "and"
+msgstr ""
+
+#: shop-to-llm.php:2602
+#, php-format
+msgid "⚠ You will permanently lose: %s. This data cannot be recovered. Are you sure you want to uninstall?"
+msgstr ""
+
+#: shop-to-llm.php:2631
+#: shop-to-llm.php:2639
+msgid "Shop2LLM Visibility Score"
+msgstr ""
+
+#: shop-to-llm.php:2742
+msgid "Focus Query"
+msgstr ""
+
+#: shop-to-llm.php:2743
+msgid "e.g., best wireless earbuds"
+msgstr ""
+
+#: shop-to-llm.php:2744
+msgid "What should AI assistants recommend you for?"
+msgstr ""
+
+#: shop-to-llm.php:2751
+msgid "My brand appears on authoritative lists"
+msgstr ""
+
+#: shop-to-llm.php:2779
+msgid "llms.txt contains query"
+msgstr ""
+
+#: shop-to-llm.php:2784
+msgid "robots.txt allows AI"
+msgstr ""
+
+#: shop-to-llm.php:2794
+msgid "Schema contains query"
+msgstr ""
+
+#: shop-to-llm.php:2799
+msgid "MCP tools connected"
+msgstr ""
+
+#: shop-to-llm.php:2804
+msgid "Pre-rendered HTML readable"
+msgstr ""
+
+#: shop-to-llm.php:2809
+msgid "FAQPage schema present"
+msgstr ""
+
+#: shop-to-llm.php:2827
+#: shop-to-llm.php:2867
+msgid "Query in title (position-weighted)"
+msgstr ""
+
+#: shop-to-llm.php:2834
+#: shop-to-llm.php:2868
+msgid "Query in heading"
+msgstr ""
+
+#: shop-to-llm.php:2840
+#: shop-to-llm.php:2869
+msgid "Query in first 100 words"
+msgstr ""
+
+#: shop-to-llm.php:2845
+#: shop-to-llm.php:2870
+msgid "Query in URL/slug"
+msgstr ""
+
+#: shop-to-llm.php:2851
+#: shop-to-llm.php:2871
+msgid "Query in meta description"
+msgstr ""
+
+#: shop-to-llm.php:2864
+#: shop-to-llm.php:2872
+msgid "Query in image alt text"
+msgstr ""
+
+#: shop-to-llm.php:2886
+msgid "Content length > 300 words"
+msgstr ""
+
+#: shop-to-llm.php:2891
+msgid "Contains statistics/claims"
+msgstr ""
+
+#: shop-to-llm.php:2896
+msgid "Contains citations/quotes"
+msgstr ""
+
+#: shop-to-llm.php:2905
+msgid "Content freshness"
+msgstr ""
+
+#: shop-to-llm.php:2932
+msgid "Schema completeness"
+msgstr ""
+
+#: shop-to-llm.php:2940
+msgid "Internal links >= 3"
+msgstr ""
+
+#: shop-to-llm.php:2950
+#: shop-to-llm.php:2963
+msgid "Brand in knowledge graph"
+msgstr ""
+
+#: shop-to-llm.php:2955
+#: shop-to-llm.php:2964
+msgid "Wikipedia mention"
+msgstr ""
+
+#: shop-to-llm.php:2960
+#: shop-to-llm.php:2965
+msgid "On authoritative lists"
+msgstr ""
+
+#: shop-to-llm.php:2983
+msgid "AI crawler visit < 7 days"
+msgstr ""
+
+#: shop-to-llm.php:2994
+msgid "Reviews/ratings exist"
+msgstr ""
+
+#: shop-to-llm.php:3009
+msgid "Multi-platform presence (4+)"
+msgstr ""
+
+#: shop-to-llm.php:3019
+msgid "Keyword density 0.5-2.5%"
+msgstr ""
+
+#: shop-to-llm.php:3054
+msgid "Install Yoast SEO or Rank Math for a complete content health score"
+msgstr ""
+
+#: shop-to-llm.php:3062
+msgid "llms.txt is empty"
+msgstr ""
+
+#: shop-to-llm.php:3062
+msgid "Go to Settings"
+msgstr ""
+
+#: shop-to-llm.php:3063
+msgid "robots.txt may block AI crawlers"
+msgstr ""
+
+#: shop-to-llm.php:3063
+msgid "Fix robots.txt"
+msgstr ""
+
+#: shop-to-llm.php:3064
+msgid "Schema markup missing content"
+msgstr ""
+
+#: shop-to-llm.php:3064
+msgid "Add structured data"
+msgstr ""
+
+#: shop-to-llm.php:3065
+msgid "No AI tools connected — store invisible to AI"
+msgstr ""
+
+#: shop-to-llm.php:3065
+msgid "Connect AI tools"
+msgstr ""
+
+#: shop-to-llm.php:3066
+msgid "Page has heavy JS — may be unreadable to AI"
+msgstr ""
+
+#: shop-to-llm.php:3066
+msgid "Check page source"
+msgstr ""
+
+#: shop-to-llm.php:3067
+msgid "No FAQ or Q&A section found"
+msgstr ""
+
+#: shop-to-llm.php:3067
+msgid "Add FAQ block"
+msgstr ""
+
+#: shop-to-llm.php:3068
+msgid "Search keyword not in title"
+msgstr ""
+
+#: shop-to-llm.php:3068
+msgid "Edit title"
+msgstr ""
+
+#: shop-to-llm.php:3069
+msgid "Search keyword not in heading (H1/H2)"
+msgstr ""
+
+#: shop-to-llm.php:3069
+msgid "Add heading with keyword"
+msgstr ""
+
+#: shop-to-llm.php:3070
+msgid "Keyword not in opening paragraph"
+msgstr ""
+
+#: shop-to-llm.php:3070
+msgid "Add keyword near top"
+msgstr ""
+
+#: shop-to-llm.php:3071
+msgid "Keyword not in URL/slug"
+msgstr ""
+
+#: shop-to-llm.php:3071
+msgid "Edit slug"
+msgstr ""
+
+#: shop-to-llm.php:3072
+msgid "Keyword not in meta description"
+msgstr ""
+
+#: shop-to-llm.php:3072
+msgid "Set SEO description"
+msgstr ""
+
+#: shop-to-llm.php:3073
+msgid "No alt text with keyword on images"
+msgstr ""
+
+#: shop-to-llm.php:3073
+msgid "Add alt text"
+msgstr ""
+
+#: shop-to-llm.php:3074
+msgid "Content too short (<150 words)"
+msgstr ""
+
+#: shop-to-llm.php:3074
+msgid "Add more content"
+msgstr ""
+
+#: shop-to-llm.php:3075
+msgid "No statistics or data found — AI prefers data-backed content"
+msgstr ""
+
+#: shop-to-llm.php:3075
+msgid "Add numbers & data"
+msgstr ""
+
+#: shop-to-llm.php:3076
+msgid "No citations or references — AI prefers verifiable content"
+msgstr ""
+
+#: shop-to-llm.php:3076
+msgid "Add quotes & sources"
+msgstr ""
+
+#: shop-to-llm.php:3077
+msgid "Content was updated >90 days ago — AI prefers fresh content"
+msgstr ""
+
+#: shop-to-llm.php:3077
+msgid "Update content"
+msgstr ""
+
+#: shop-to-llm.php:3078
+msgid "Missing title/thumbnail/excerpt for schema"
+msgstr ""
+
+#: shop-to-llm.php:3078
+msgid "Fill in missing fields"
+msgstr ""
+
+#: shop-to-llm.php:3079
+msgid "Too few internal links (need 3+)"
+msgstr ""
+
+#: shop-to-llm.php:3079
+msgid "Link to related content"
+msgstr ""
+
+#: shop-to-llm.php:3080
+msgid "Brand not found in knowledge graph"
+msgstr ""
+
+#: shop-to-llm.php:3080
+#: shop-to-llm.php:3081
+msgid "Enable entity checks"
+msgstr ""
+
+#: shop-to-llm.php:3081
+msgid "Not mentioned on Wikipedia"
+msgstr ""
+
+#: shop-to-llm.php:3082
+msgid "Not marked as on authoritative lists"
+msgstr ""
+
+#: shop-to-llm.php:3082
+msgid "Check box above"
+msgstr ""
+
+#: shop-to-llm.php:3083
+msgid "No recent AI crawler visits"
+msgstr ""
+
+#: shop-to-llm.php:3083
+msgid "Wait for crawler activity"
+msgstr ""
+
+#: shop-to-llm.php:3084
+msgid "No reviews yet"
+msgstr ""
+
+#: shop-to-llm.php:3084
+msgid "Encourage reviews"
+msgstr ""
+
+#: shop-to-llm.php:3085
+msgid "Seen by <4 AI platforms"
+msgstr ""
+
+#: shop-to-llm.php:3085
+msgid "Connect more AI tools"
+msgstr ""
+
+#: shop-to-llm.php:3086
+msgid "Keyword density outside 0.5-2.5%"
+msgstr ""
+
+#: shop-to-llm.php:3086
+msgid "Adjust keyword usage"
+msgstr ""
+
+#: shop-to-llm.php:3091
+msgid "llms.txt file is accessible"
+msgstr ""
+
+#: shop-to-llm.php:3092
+msgid "robots.txt allows AI crawlers"
+msgstr ""
+
+#: shop-to-llm.php:3093
+msgid "Structured data (Schema) present"
+msgstr ""
+
+#: shop-to-llm.php:3094
+msgid "AI tools connected to store"
+msgstr ""
+
+#: shop-to-llm.php:3095
+msgid "Page content readable without JavaScript"
+msgstr ""
+
+#: shop-to-llm.php:3096
+msgid "FAQ or Q&A section included"
+msgstr ""
+
+#: shop-to-llm.php:3097
+msgid "Search keyword appears in title"
+msgstr ""
+
+#: shop-to-llm.php:3098
+msgid "Search keyword appears in heading"
+msgstr ""
+
+#: shop-to-llm.php:3099
+msgid "Search keyword in first paragraph"
+msgstr ""
+
+#: shop-to-llm.php:3100
+msgid "Search keyword in URL address"
+msgstr ""
+
+#: shop-to-llm.php:3101
+msgid "Search keyword in meta description"
+msgstr ""
+
+#: shop-to-llm.php:3102
+msgid "Search keyword in image alt text"
+msgstr ""
+
+#: shop-to-llm.php:3103
+msgid "Content length over 300 words"
+msgstr ""
+
+#: shop-to-llm.php:3104
+msgid "Includes statistics and data"
+msgstr ""
+
+#: shop-to-llm.php:3105
+msgid "Includes citations and references"
+msgstr ""
+
+#: shop-to-llm.php:3106
+msgid "Content updated within 30 days"
+msgstr ""
+
+#: shop-to-llm.php:3107
+msgid "Complete metadata (title, image, excerpt)"
+msgstr ""
+
+#: shop-to-llm.php:3108
+msgid "Internal links to related pages"
+msgstr ""
+
+#: shop-to-llm.php:3109
+msgid "Brand recognized in knowledge graph"
+msgstr ""
+
+#: shop-to-llm.php:3110
+msgid "Brand mentioned on Wikipedia"
+msgstr ""
+
+#: shop-to-llm.php:3111
+msgid "Appears on authoritative lists"
+msgstr ""
+
+#: shop-to-llm.php:3112
+msgid "Recent AI crawler activity"
+msgstr ""
+
+#: shop-to-llm.php:3113
+msgid "Customer reviews exist"
+msgstr ""
+
+#: shop-to-llm.php:3114
+msgid "Indexed by multiple AI platforms"
+msgstr ""
+
+#: shop-to-llm.php:3115
+msgid "Keyword density in optimal range"
+msgstr ""
+
+#: shop-to-llm.php:3120
+msgid "AI reads raw HTML, not rendered pages. Heavy JavaScript can hide content."
+msgstr ""
+
+#: shop-to-llm.php:3121
+msgid "MCP (Model Context Protocol) lets ChatGPT and other AI tools directly query your store."
+msgstr ""
+
+#: shop-to-llm.php:3122
+msgid "llms.txt is a standard file that tells AI models what your website contains."
+msgstr ""
+
+#: shop-to-llm.php:3210
+msgid "Problems"
+msgstr ""
+
+#: shop-to-llm.php:3220
+msgid "To Improve"
+msgstr ""
+
+#: shop-to-llm.php:3230
+msgid "Good"
+msgstr ""
+
+#: shop-to-llm.php:3239
+msgid "Perfect AI Visibility!"
+msgstr ""
+
+#: shop-to-llm.php:3246
+msgid "Can AI find me?"
+msgstr ""
+
+#: shop-to-llm.php:3246
+msgid "Technical discoverability: llms.txt, robots.txt, Schema, MCP"
+msgstr ""
+
+#: shop-to-llm.php:3247
+msgid "Relevance 🔒"
+msgstr ""
+
+#: shop-to-llm.php:3247
+msgid "Search Relevance"
+msgstr ""
+
+#: shop-to-llm.php:3247
+msgid "How well your content matches the search query"
+msgstr ""
+
+#: shop-to-llm.php:3248
+msgid "Content Quality"
+msgstr ""
+
+#: shop-to-llm.php:3248
+msgid "Length, statistics, citations, freshness, structure"
+msgstr ""
+
+#: shop-to-llm.php:3249
+msgid "Authority 🔒"
+msgstr ""
+
+#: shop-to-llm.php:3249
+msgid "Brand Authority"
+msgstr ""
+
+#: shop-to-llm.php:3249
+msgid "Knowledge graph, Wikipedia, authoritative lists"
+msgstr ""
+
+#: shop-to-llm.php:3250
+msgid "AI Activity"
+msgstr ""
+
+#: shop-to-llm.php:3250
+msgid "Crawler visits, reviews, multi-platform reach"
+msgstr ""
+
+#: shop-to-llm.php:3254
+msgid "Dimension Breakdown"
+msgstr ""
+
+#: shop-to-llm.php:3269
+msgid "Enter a Focus Query to unlock"
+msgstr ""
+
+#: shop-to-llm.php:3277
+msgid "AI Visibility Trend"
+msgstr ""
+
+#: shop-to-llm.php:3312
+#: shop-to-llm.php:3322
+msgid "This week:"
+msgstr ""
+
+#: shop-to-llm.php:3313
+msgid "Last:"
+msgstr ""
+
+#: shop-to-llm.php:3318
+msgid "AI visibility dropping"
+msgstr ""
+
+#: shop-to-llm.php:3324
+#: shop-to-llm.php:3326
+msgid "Trend data will appear after next week"
+msgstr ""
+
+#: shop-to-llm.php:3334
+#, php-format
+msgid "%d AI bots visited"
+msgstr ""
+
+#: shop-to-llm.php:3339
+#, php-format
+msgid "Last: %s"
+msgstr ""
+
+#: shop-to-llm.php:3354
+msgid "S2LL Score"
+msgstr ""
+
+#: shop-to-llm.php:3383
+#, php-format
+msgid "Shop2LLM Visibility Score: %d/100"
+msgstr ""
+
+#: shop-to-llm.php:4219
+msgid "✅ AI crawler rules added to robots.txt. Your content is now discoverable by AI."
+msgstr ""
+
+#: shop-to-llm.php:4230
+msgid "✅ robots.txt allows AI crawlers — 12 AI bots whitelisted. Your content is discoverable by ChatGPT, GPTBot, ClaudeBot and more."
+msgstr ""
+
+#: shop-to-llm.php:4241
+msgid "⚠ robots.txt may block AI crawlers"
+msgstr ""
+
+#: shop-to-llm.php:4242
+msgid "AI search engines cannot index your content. This reduces your AI Visibility Score."
+msgstr ""
+
+#: shop-to-llm.php:4245
+msgid "🛠 Fix robots.txt"
+msgstr ""
+
+#: shop-to-llm.php:4248
+msgid "Adds AI crawler rules to allow GPTBot, ClaudeBot & 10 more"
+msgstr ""

@@ -1,0 +1,1046 @@
+# Copyright (C) 2026 FinCore
+# This file is distributed under the GPL-2.0+.
+msgid ""
+msgstr ""
+"Project-Id-Version: Shop2LLM — AI Visibility 1.0.7\n"
+"Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/shop-to-llm\n"
+"PO-Revision-Date: 2026-06-22 15:30+0800\n"
+"Last-Translator: FinCore <support@shop2llm.com>\n"
+"Language-Team: Chinese (China) <support@shop2llm.com>\n"
+"Language: zh_CN\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"POT-Creation-Date: 2026-06-22T07:12:19+00:00\n"
+"X-Generator: manual\n"
+"X-Domain: shop-to-llm\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+
+#. Plugin Name
+msgid "Shop2LLM — AI Visibility"
+msgstr "Shop2LLM — AI 可见度"
+
+#. Plugin URI / Author URI
+msgid "https://shop2llm.com/"
+msgstr "https://shop2llm.com/"
+
+#. Description
+msgid "Your WordPress site is invisible to ChatGPT, Perplexity, and AI search. Fix that in 2 clicks — Shop2LLM gives you a real-time AI visibility score, auto-generates llms.txt, and tracks 12 AI crawlers."
+msgstr "你的 WordPress 网站在 ChatGPT、Perplexity 和 AI 搜索中不可见。2 步修复 — Shop2LLM 提供实时 AI 可见度评分、自动生成 llms.txt 并追踪 12 个 AI 爬虫。"
+
+#. Author
+msgid "FinCore"
+msgstr "FinCore"
+
+msgid "Upgrade to Pro"
+msgstr "升级到 Pro"
+
+#, php-format
+msgid "🎉 %s just discovered your store!"
+msgstr "🎉 %s 刚刚发现了你的店铺！"
+
+#, php-format
+msgid "🎉 %s just discovered your site!"
+msgstr "🎉 %s 刚刚发现了你的网站！"
+
+msgid "Your products are now visible to AI assistants. View your AI visibility dashboard:"
+msgstr "你的产品现已对 AI 助手可见。查看 AI 可见度仪表盘："
+
+msgid "Your content is now visible to AI assistants. View your AI visibility dashboard:"
+msgstr "你的内容现已对 AI 助手可见。查看 AI 可见度仪表盘："
+
+msgid "Open Shop2LLM Dashboard"
+msgstr "打开 Shop2LLM 仪表盘"
+
+#, php-format
+msgid "🚀 %s — and AI consumers are already searching!"
+msgstr "🚀 %s — AI 消费者已经开始搜索了！"
+
+msgid "Your store is live on AI. 174 other stores joined this week — your rating helps us grow!"
+msgstr "你的店铺已在 AI 上线。本周 174 家店铺加入 — 你的评价能帮助我们成长！"
+
+msgid "Your site is live on AI. 174 other sites joined this week — your rating helps us grow!"
+msgstr "你的网站已在 AI 上线。本周 174 个网站加入 — 你的评价能帮助我们成长！"
+
+msgid "⭐ Leave a Review on WP.org"
+msgstr "⭐ 在 WP.org 留下评价"
+
+# translators: 1: number of crawler visits, 2: number of AI bots
+#, php-format
+msgid "🤖 %1$d AI crawler visits from %2$d platforms this week"
+msgstr "🤖 本周 %1$d 次 AI 爬虫访问来自 %2$d 个平台"
+
+# translators: %d: total crawler records
+#, php-format
+msgid "%d total crawler records accumulated. View your AI visibility trends:"
+msgstr "累计 %d 条爬虫记录。查看 AI 可见度趋势："
+
+msgid "Open Dashboard →"
+msgstr "打开仪表盘 →"
+
+msgid "WooCommerce is not active. Product-related features (product search, product feed, product AI score) are disabled. Blog and page content is still discoverable by AI. Install WooCommerce for full product AI visibility."
+msgstr "WooCommerce 未激活。产品相关功能（产品搜索、产品信息流、产品 AI 评分）已禁用。博客和页面内容仍可被 AI 发现。安装 WooCommerce 以获取完整的产品 AI 可见度。"
+
+msgid "Your site is now visible to ChatGPT and AI assistants."
+msgstr "你的网站现已对 ChatGPT 和 AI 助手可见。"
+
+msgid "Open Dashboard"
+msgstr "打开仪表盘"
+
+msgid "Dismiss"
+msgstr "关闭"
+
+msgid "Rate us on WordPress.org"
+msgstr "在 WordPress.org 上评价我们"
+
+msgid "Wizard"
+msgstr "向导"
+
+msgid "Close — will re-appear after 8 hours"
+msgstr "关闭 — 8 小时后将再次出现"
+
+msgid "Check Your Products"
+msgstr "检查你的产品"
+
+msgid "Enter a SKU in the Product AI Score card below to see which products need improvement for AI discovery."
+msgstr "在下方产品 AI 评分卡片中输入 SKU，查看哪些产品需要改进以提升 AI 发现率。"
+
+msgid "Connect to ChatGPT"
+msgstr "连接到 ChatGPT"
+
+msgid "Copy this link and add it to ChatGPT — then you can search your own products to verify everything works."
+msgstr "复制此链接并添加到 ChatGPT — 然后你可以搜索自己的产品来验证一切是否正常。"
+
+msgid "Copy"
+msgstr "复制"
+
+msgid "Improve Product Pages"
+msgstr "优化产品页面"
+
+msgid "AI prefers products with clear descriptions, images, and categories. Use the score card below to find what to fix."
+msgstr "AI 偏好具有清晰描述、图片和分类的产品。使用下方的评分卡找出需要改进的地方。"
+
+msgid "Watch AI Activity Grow"
+msgstr "观察 AI 活动增长"
+
+msgid "When customers ask AI about products you sell, their search terms and crawler visits will appear here on your dashboard."
+msgstr "当顾客向 AI 询问你销售的产品时，他们的搜索词和爬虫访问将显示在此仪表盘上。"
+
+msgid "Dismiss anytime."
+msgstr "可随时关闭。"
+
+msgid "Unauthorized"
+msgstr "未授权"
+
+msgid "Settings saved."
+msgstr "设置已保存。"
+
+msgid "Get your products discovered by ChatGPT and AI-powered search engines."
+msgstr "让你的产品被 ChatGPT 和 AI 搜索引擎发现。"
+
+msgid "Get your content discovered by ChatGPT and AI-powered search engines."
+msgstr "让你的内容被 ChatGPT 和 AI 搜索引擎发现。"
+
+msgid "Content"
+msgstr "内容"
+
+msgid "Store"
+msgstr "店铺"
+
+msgid "WooCommerce is not active. Product search by price/category/stock, product AI scoring, and product feed XML are unavailable. Install WooCommerce for the full experience."
+msgstr "WooCommerce 未激活。按价格/分类/库存的产品搜索、产品 AI 评分和产品信息流 XML 不可用。安装 WooCommerce 获取完整体验。"
+
+msgid "Install →"
+msgstr "安装 →"
+
+msgid "Store AI-Ready"
+msgstr "店铺 AI 就绪"
+
+msgid "Site AI-Ready"
+msgstr "网站 AI 就绪"
+
+msgid "Schema + llms.txt + robots.txt auto-generated"
+msgstr "Schema + llms.txt + robots.txt 自动生成"
+
+msgid "Products Indexed"
+msgstr "产品已索引"
+
+#, php-format
+msgid "%d content items discovered by AI crawlers"
+msgstr "%d 个内容条目已被 AI 爬虫发现"
+
+msgid "Add products in WooCommerce → Products"
+msgstr "在 WooCommerce → 产品 中添加产品"
+
+msgid "Add posts in WordPress → Posts"
+msgstr "在 WordPress → 文章 中添加文章"
+
+msgid "AI Crawlers Found You"
+msgstr "AI 爬虫已发现你"
+
+#, php-format
+msgid "%d crawler visits today"
+msgstr "今天 %d 次爬虫访问"
+
+msgid "ChatGPT & other AIs will discover your store"
+msgstr "ChatGPT 和其他 AI 将发现你的店铺"
+
+msgid "ChatGPT & other AIs will discover your site"
+msgstr "ChatGPT 和其他 AI 将发现你的网站"
+
+msgid "ChatGPT Connected"
+msgstr "ChatGPT 已连接"
+
+#, php-format
+msgid "%d API calls today — store is live"
+msgstr "今天 %d 次 API 调用 — 店铺已上线"
+
+msgid "Paste MCP config into ChatGPT (see below)"
+msgstr "将 MCP 配置粘贴到 ChatGPT（见下方）"
+
+msgid "6 AI Platforms Live"
+msgstr "6 个 AI 平台在线"
+
+msgid "Claude, Gemini, Copilot, Meta AI, Bedrock — Pro only"
+msgstr "Claude、Gemini、Copilot、Meta AI、Bedrock — 仅限 Pro"
+
+msgid "AI Growth Progress"
+msgstr "AI 增长进度"
+
+msgid "Track your progress toward full AI visibility. Complete all 5 milestones for maximum discoverability."
+msgstr "追踪全面 AI 可见度的进度。完成全部 5 个里程碑以获得最佳可发现性。"
+
+msgid "Store Live"
+msgstr "店铺上线"
+
+msgid "AI Discovered"
+msgstr "AI 已发现"
+
+msgid "First Search"
+msgstr "首次搜索"
+
+msgid "Power User"
+msgstr "高级用户"
+
+msgid "Go to Settings tab → Connection Config → paste into ChatGPT to reach the next milestone"
+msgstr "前往 设置 标签 → 连接配置 → 粘贴到 ChatGPT 以达成下一个里程碑"
+
+msgid "AI Visibility Summary"
+msgstr "AI 可见度摘要"
+
+msgid "Today's AI activity at a glance: API calls, crawler bots, searches, and tools available."
+msgstr "今日 AI 活动一览：API 调用、爬虫机器人、搜索次数和可用工具。"
+
+msgid "Connected"
+msgstr "已连接"
+
+msgid "Disabled"
+msgstr "已禁用"
+
+msgid "API Calls"
+msgstr "API 调用"
+
+msgid "AI Bots"
+msgstr "AI 机器人"
+
+msgid "Searches"
+msgstr "搜索"
+
+msgid "AI Tools"
+msgstr "AI 工具"
+
+msgid "👋 New here? Go to Settings → Connection Config → paste into ChatGPT"
+msgstr "👋 新用户？前往 设置 → 连接配置 → 粘贴到 ChatGPT"
+
+msgid "💡 How to read this"
+msgstr "💡 如何解读"
+
+msgid "Each API call = an AI assistant connected to your site."
+msgstr "每次 API 调用 = 一个 AI 助手连接了你的网站。"
+
+msgid "Each crawler visit = an AI search engine indexed your content."
+msgstr "每次爬虫访问 = 一个 AI 搜索引擎索引了你的内容。"
+
+msgid "More activity → better AI visibility → more organic traffic."
+msgstr "更多活动 → 更好的 AI 可见度 → 更多自然流量。"
+
+msgid "AI activity will appear here as ChatGPT and other AI assistants discover your store. Copy your connection config from the Settings tab and paste into ChatGPT to get started."
+msgstr "当 ChatGPT 和其他 AI 助手发现你的店铺时，AI 活动将显示在此处。从设置标签复制连接配置并粘贴到 ChatGPT 即可开始。"
+
+msgid "AI activity will appear here as ChatGPT and other AI assistants discover your site. Copy your connection config from the Settings tab and paste into ChatGPT to get started."
+msgstr "当 ChatGPT 和其他 AI 助手发现你的网站时，AI 活动将显示在此处。从设置标签复制连接配置并粘贴到 ChatGPT 即可开始。"
+
+msgid "Check the Analytics tab for detailed trends and top search terms"
+msgstr "查看分析标签获取详细趋势和热门搜索词"
+
+msgid "AI-Driven Traffic"
+msgstr "AI 驱动的流量"
+
+msgid "Visitors who found your site through AI platforms like ChatGPT, Perplexity, and Copilot."
+msgstr "通过 ChatGPT、Perplexity 和 Copilot 等 AI 平台找到你网站的访客。"
+
+msgid "Connect more AI platforms in Pro to increase AI-driven traffic"
+msgstr "在 Pro 中连接更多 AI 平台以增加 AI 驱动的流量"
+
+msgid "AI Crawler Activity"
+msgstr "AI 爬虫活动"
+
+msgid "Track when AI crawlers like GPTBot and ClaudeBot visit your site. More visits = better AI visibility."
+msgstr "追踪 GPTBot、ClaudeBot 等 AI 爬虫何时访问你的网站。更多访问 = 更好的 AI 可见度。"
+
+msgid "Share your content regularly — AI crawlers return more often to sites that update frequently"
+msgstr "定期分享内容 — AI 爬虫会频繁回访更新活跃的网站"
+
+msgid "How You Compare"
+msgstr "与你对比"
+
+msgid "See how your AI visibility stacks up against other free users and Pro subscribers."
+msgstr "查看你的 AI 可见度与其他免费用户和 Pro 用户的对比。"
+
+msgid "Metric"
+msgstr "指标"
+
+msgid "You"
+msgstr "你"
+
+msgid "Avg Free"
+msgstr "免费平均"
+
+msgid "Pro Users"
+msgstr "Pro 用户"
+
+msgid "AI Visibility Score"
+msgstr "AI 可见度评分"
+
+msgid "AI Platforms"
+msgstr "AI 平台"
+
+msgid "Data Retention"
+msgstr "数据保留"
+
+msgid "Products"
+msgstr "产品"
+
+msgid "Content Items"
+msgstr "内容条目"
+
+msgid "Pro users score 82+ on average — upgrade to unlock 6 AI platforms and always-on connection"
+msgstr "Pro 用户平均得分 82+ — 升级以解锁 6 个 AI 平台和始终在线连接"
+
+msgid "AI Search Activity"
+msgstr "AI 搜索活动"
+
+msgid "See what consumers are asking AI assistants about your content. Shows search terms, results, and timing."
+msgstr "查看消费者向 AI 助手询问关于你内容的哪些问题。显示搜索词、结果和时间。"
+
+msgid "No AI searches today yet. When a consumer asks an AI (like ChatGPT) about your products, the search terms and matched products will appear here — so you can see what consumers are asking AI about your store."
+msgstr "今天尚无 AI 搜索。当消费者向 AI（如 ChatGPT）询问你的产品时，搜索词和匹配产品将显示在此 — 你可以看到消费者向 AI 询问你店铺的哪些内容。"
+
+msgid "No AI searches today yet. When a consumer asks an AI (like ChatGPT) about your content, the search terms and matched items will appear here — so you can see what consumers are asking AI about your site."
+msgstr "今天尚无 AI 搜索。当消费者向 AI（如 ChatGPT）询问你的内容时，搜索词和匹配条目将显示在此 — 你可以看到消费者向 AI 询问你网站的哪些内容。"
+
+# translators: %d: number of searches
+#, php-format
+msgid "What consumers asked AI about your store today (%d searches):"
+msgstr "今天消费者向 AI 询问了你的店铺（%d 次搜索）："
+
+# translators: %d: number of searches
+#, php-format
+msgid "What consumers asked AI about your site today (%d searches):"
+msgstr "今天消费者向 AI 询问了你的网站（%d 次搜索）："
+
+msgid "Latest first"
+msgstr "最新优先"
+
+msgid "Oldest first"
+msgstr "最早优先"
+
+msgid "Most results"
+msgstr "最多结果"
+
+msgid "Fewest results"
+msgstr "最少结果"
+
+msgid "Search Term"
+msgstr "搜索词"
+
+msgid "Products Found"
+msgstr "找到产品"
+
+msgid "Results"
+msgstr "结果"
+
+msgid "Time"
+msgstr "时间"
+
+#, php-format
+msgid "%d found"
+msgstr "找到 %d 个"
+
+msgid "No match"
+msgstr "无匹配"
+
+#, php-format
+msgid "Showing latest 15 of %d searches. Upgrade to Pro for full search analytics."
+msgstr "显示 %d 次搜索中的最新 15 条。升级到 Pro 获取完整搜索分析。"
+
+msgid "Use these search terms to improve your content and Focus Queries"
+msgstr "使用这些搜索词优化你的内容和焦点查询"
+
+msgid "Product Name"
+msgstr "产品名称"
+
+msgid "Short Description"
+msgstr "简短描述"
+
+msgid "Full Description"
+msgstr "完整描述"
+
+msgid "Product Images"
+msgstr "产品图片"
+
+msgid "Price Set"
+msgstr "价格设定"
+
+msgid "Categories"
+msgstr "分类"
+
+msgid "Tags"
+msgstr "标签"
+
+msgid "Stock Managed"
+msgstr "库存管理"
+
+msgid "Attributes / Specs"
+msgstr "属性/规格"
+
+msgid "Product AI Score"
+msgstr "产品 AI 评分"
+
+msgid "Check individual product readiness for AI discovery. Enter SKU or name to see a scored breakdown."
+msgstr "检查单个产品对 AI 发现的就绪程度。输入 SKU 或名称查看评分详情。"
+
+msgid "Enter SKU or product name"
+msgstr "输入 SKU 或产品名称"
+
+msgid "Check"
+msgstr "检查"
+
+msgid "AI readiness score for this product"
+msgstr "此产品的 AI 就绪评分"
+
+msgid "Fix →"
+msgstr "修复 →"
+
+msgid "Product not found. Try a different SKU or keyword."
+msgstr "产品未找到。请尝试其他 SKU 或关键词。"
+
+msgid "Enter a product SKU or name to see its AI readiness score. A higher score means AI is more likely to recommend this product to shoppers."
+msgstr "输入产品 SKU 或名称查看其 AI 就绪评分。分数越高，AI 越可能向购物者推荐该产品。"
+
+msgid "Use the editor S2LL Score panel for detailed per-product optimization"
+msgstr "使用编辑器 S2LL 评分面板进行详细的产品级优化"
+
+msgid "This feature requires WooCommerce."
+msgstr "此功能需要 WooCommerce。"
+
+msgid "Install WooCommerce to unlock: product AI scoring, search by price/category/stock, and product feed XML."
+msgstr "安装 WooCommerce 以解锁：产品 AI 评分、按价格/分类/库存搜索和产品信息流 XML。"
+
+msgid "Install WooCommerce →"
+msgstr "安装 WooCommerce →"
+
+msgid "Settings"
+msgstr "设置"
+
+msgid "Configure which features are active. All changes take effect immediately."
+msgstr "配置哪些功能处于激活状态。所有更改立即生效。"
+
+msgid "Enable"
+msgstr "启用"
+
+msgid "Enabled — store is visible to AI agents"
+msgstr "已启用 — 店铺对 AI 代理可见"
+
+msgid "Product Search"
+msgstr "产品搜索"
+
+msgid "Enabled — AI can search your catalog"
+msgstr "已启用 — AI 可以搜索你的目录"
+
+msgid "Analytics"
+msgstr "分析"
+
+msgid "Disabled — no data sent"
+msgstr "已禁用 — 不发送数据"
+
+msgid "Enabled — share anonymized site metadata &amp; AI crawler visits for analytics"
+msgstr "已启用 — 分享匿名站点元数据和 AI 爬虫访问用于分析"
+
+msgid "When enabled, basic site metadata and AI crawler visits are sent to our cloud service. No personal customer or order data is transmitted. Privacy Policy: https://shop2llm.com/privacy"
+msgstr "启用后，基本站点元数据和 AI 爬虫访问将发送到我们的云服务。不会传输任何客户或订单个人数据。隐私政策：https://shop2llm.com/privacy"
+
+msgid "AI Badge"
+msgstr "AI 徽章"
+
+msgid "Show — display AI Discoverable badge on your site"
+msgstr "显示 — 在网站上展示 AI 可发现徽章"
+
+msgid "Hidden"
+msgstr "隐藏"
+
+msgid "Adds a small badge in the footer indicating your site is AI-discoverable. Links to your public /ai-visibility/ page."
+msgstr "在页脚添加小徽章表明你的网站可被 AI 发现。链接到 /ai-visibility/ 公开页面。"
+
+msgid "Entity Checks"
+msgstr "实体检查"
+
+msgid "Enable external knowledge graph checks (Wikidata/Wikipedia)"
+msgstr "启用外部知识图谱检查（Wikidata/维基百科）"
+
+msgid "This sends your focus query to public APIs to check entity presence. No personal data is transmitted."
+msgstr "此功能将你的焦点查询发送到公共 API 以检查实体存在。不会传输个人数据。"
+
+msgid "Cart & Checkout"
+msgstr "购物车与结账"
+
+msgid "Pro"
+msgstr "Pro"
+
+msgid "AI agents add to cart, checkout, and track orders"
+msgstr "AI 代理添加到购物车、结账和追踪订单"
+
+msgid "Enable Entity Checks for more accurate AI visibility scores"
+msgstr "启用实体检查以获取更准确的 AI 可见度评分"
+
+msgid "Save Settings"
+msgstr "保存设置"
+
+msgid "Test It Yourself"
+msgstr "自行测试"
+
+msgid "Connect your site to ChatGPT and other AI tools. Copy-paste this config to make your content AI-accessible."
+msgstr "将你的网站连接到 ChatGPT 和其他 AI 工具。复制粘贴此配置使你的内容可被 AI 访问。"
+
+msgid "Status"
+msgstr "状态"
+
+msgid "Paste this config into your ChatGPT to verify your store is AI-ready. This connects your ChatGPT to your store — a quick way to confirm everything works."
+msgstr "将此配置粘贴到 ChatGPT 以验证你的店铺是否 AI 就绪。这会将你的 ChatGPT 连接到店铺 — 快速确认一切正常。"
+
+msgid "Paste this config into your ChatGPT to verify your site is AI-ready. This connects your ChatGPT to your site — a quick way to confirm everything works."
+msgstr "将此配置粘贴到 ChatGPT 以验证你的网站是否 AI 就绪。这会将你的 ChatGPT 连接到网站 — 快速确认一切正常。"
+
+msgid "💡 Consumers can't search your store yet. This config only connects your own ChatGPT. For consumers to discover your products through ChatGPT, Claude, Gemini and more, you need the always-on cloud connection — available in Pro."
+msgstr "💡 消费者尚无法搜索你的店铺。此配置仅连接你自己的 ChatGPT。要让消费者通过 ChatGPT、Claude、Gemini 等发现你的产品，需要始终在线的云连接 — Pro 版可用。"
+
+msgid "💡 Consumers can't search your site yet. This config only connects your own ChatGPT. For consumers to discover your content through ChatGPT, Claude, Gemini and more, you need the always-on cloud connection — available in Pro."
+msgstr "💡 消费者尚无法搜索你的网站。此配置仅连接你自己的 ChatGPT。要让消费者通过 ChatGPT、Claude、Gemini 等发现你的内容，需要始终在线的云连接 — Pro 版可用。"
+
+msgid "Copy Config"
+msgstr "复制配置"
+
+msgid "Then: ChatGPT Desktop → Settings → Developer → Connect App → paste and save."
+msgstr "然后：ChatGPT 桌面版 → 设置 → 开发者 → 连接应用 → 粘贴并保存。"
+
+msgid "👋 First time here? Copy the config above → paste into ChatGPT → your store goes live"
+msgstr "👋 首次使用？复制上方配置 → 粘贴到 ChatGPT → 你的店铺即上线"
+
+msgid "👋 First time here? Copy the config above → paste into ChatGPT → your site goes live"
+msgstr "👋 首次使用？复制上方配置 → 粘贴到 ChatGPT → 你的网站即上线"
+
+msgid "API Key"
+msgstr "API 密钥"
+
+msgid "AI Endpoint"
+msgstr "AI 端点"
+
+msgid "After connecting, check the Dashboard tab to see AI activity"
+msgstr "连接后，查看仪表盘标签了解 AI 活动"
+
+msgid "AI platforms your content can appear on. Free supports ChatGPT — Pro unlocks all 6 platforms."
+msgstr "你的内容可以出现在哪些 AI 平台上。免费版支持 ChatGPT — Pro 解锁全部 6 个平台。"
+
+msgid "Free"
+msgstr "免费"
+
+msgid "Pro unlocks Claude, Gemini, Copilot, Meta AI, and Bedrock for complete AI coverage"
+msgstr "Pro 解锁 Claude、Gemini、Copilot、Meta AI 和 Bedrock，实现全面 AI 覆盖"
+
+msgid "stores added this week"
+msgstr "本周新增店铺"
+
+msgid "2 AI tools (search, product detail) — 5 total with Pro"
+msgstr "2 个 AI 工具（搜索、产品详情）— Pro 共 5 个"
+
+msgid "Shop2LLM product feed for ChatGPT, Bing Copilot, Google AI Overview, and Perplexity"
+msgstr "Shop2LLM 产品信息流，适用于 ChatGPT、Bing Copilot、Google AI Overview 和 Perplexity"
+
+msgid "No pages indexed yet. AI crawlers will discover your content over time."
+msgstr "暂无已索引页面。AI 爬虫会随时间发现你的内容。"
+
+msgid "Recently Indexed Pages"
+msgstr "最近索引的页面"
+
+msgid "Page"
+msgstr "页面"
+
+msgid "Crawler"
+msgstr "爬虫"
+
+msgid "Last Visit"
+msgstr "最近访问"
+
+msgid "ago"
+msgstr "前"
+
+msgid "Shop2LLM Visibility"
+msgstr "Shop2LLM 可见度"
+
+#, php-format
+msgid "%d AI crawler visit records"
+msgstr "%d 条 AI 爬虫访问记录"
+
+#, php-format
+msgid "%d AI traffic tracking records"
+msgstr "%d 条 AI 流量追踪记录"
+
+#, php-format
+msgid "%d Focus Query configurations"
+msgstr "%d 个焦点查询配置"
+
+msgid "all AI visibility scores and trend history"
+msgstr "所有 AI 可见度评分和趋势历史"
+
+msgid "and"
+msgstr "和"
+
+#, php-format
+msgid "⚠ You will permanently lose: %s. This data cannot be recovered. Are you sure you want to uninstall?"
+msgstr "⚠ 你将永久丢失：%s。此数据无法恢复。确定要卸载吗？"
+
+msgid "Shop2LLM Visibility Score"
+msgstr "Shop2LLM 可见度评分"
+
+msgid "Focus Query"
+msgstr "焦点查询"
+
+msgid "e.g., best wireless earbuds"
+msgstr "例如：最佳无线耳机"
+
+msgid "What should AI assistants recommend you for?"
+msgstr "AI 助手应该推荐你的什么？"
+
+msgid "My brand appears on authoritative lists"
+msgstr "我的品牌出现在权威列表中"
+
+msgid "llms.txt contains query"
+msgstr "llms.txt 包含查询"
+
+msgid "robots.txt allows AI"
+msgstr "robots.txt 允许 AI"
+
+msgid "Schema contains query"
+msgstr "Schema 包含查询"
+
+msgid "MCP tools connected"
+msgstr "MCP 工具已连接"
+
+msgid "Pre-rendered HTML readable"
+msgstr "预渲染 HTML 可读"
+
+msgid "FAQPage schema present"
+msgstr "FAQPage Schema 存在"
+
+msgid "Query in title (position-weighted)"
+msgstr "查询在标题中（位置加权）"
+
+msgid "Query in heading"
+msgstr "查询在标题中"
+
+msgid "Query in first 100 words"
+msgstr "查询在前 100 词中"
+
+msgid "Query in URL/slug"
+msgstr "查询在 URL/slug 中"
+
+msgid "Query in meta description"
+msgstr "查询在 meta 描述中"
+
+msgid "Query in image alt text"
+msgstr "查询在图片 alt 文本中"
+
+msgid "Content length > 300 words"
+msgstr "内容长度 > 300 词"
+
+msgid "Contains statistics/claims"
+msgstr "包含统计数据/声明"
+
+msgid "Contains citations/quotes"
+msgstr "包含引用/引述"
+
+msgid "Content freshness"
+msgstr "内容新鲜度"
+
+msgid "Schema completeness"
+msgstr "Schema 完整性"
+
+msgid "Internal links >= 3"
+msgstr "内部链接 >= 3"
+
+msgid "Brand in knowledge graph"
+msgstr "品牌在知识图谱中"
+
+msgid "Wikipedia mention"
+msgstr "维基百科提及"
+
+msgid "On authoritative lists"
+msgstr "在权威列表中"
+
+msgid "AI crawler visit < 7 days"
+msgstr "AI 爬虫访问 < 7 天"
+
+msgid "Reviews/ratings exist"
+msgstr "评价/评分存在"
+
+msgid "Multi-platform presence (4+)"
+msgstr "多平台存在（4+）"
+
+msgid "Keyword density 0.5-2.5%"
+msgstr "关键词密度 0.5-2.5%"
+
+msgid "Install Yoast SEO or Rank Math for a complete content health score"
+msgstr "安装 Yoast SEO 或 Rank Math 获取完整的内容健康评分"
+
+msgid "llms.txt is empty"
+msgstr "llms.txt 为空"
+
+msgid "Go to Settings"
+msgstr "前往设置"
+
+msgid "robots.txt may block AI crawlers"
+msgstr "robots.txt 可能阻止 AI 爬虫"
+
+msgid "Fix robots.txt"
+msgstr "修复 robots.txt"
+
+msgid "Schema markup missing content"
+msgstr "Schema 标记缺少内容"
+
+msgid "Add structured data"
+msgstr "添加结构化数据"
+
+msgid "No AI tools connected — store invisible to AI"
+msgstr "未连接 AI 工具 — 店铺对 AI 不可见"
+
+msgid "Connect AI tools"
+msgstr "连接 AI 工具"
+
+msgid "Page has heavy JS — may be unreadable to AI"
+msgstr "页面有大量 JS — 可能对 AI 不可读"
+
+msgid "Check page source"
+msgstr "检查页面源码"
+
+msgid "No FAQ or Q&A section found"
+msgstr "未找到 FAQ 或问答区域"
+
+msgid "Add FAQ block"
+msgstr "添加 FAQ 区块"
+
+msgid "Search keyword not in title"
+msgstr "搜索关键词不在标题中"
+
+msgid "Edit title"
+msgstr "编辑标题"
+
+msgid "Search keyword not in heading (H1/H2)"
+msgstr "搜索关键词不在标题中（H1/H2）"
+
+msgid "Add heading with keyword"
+msgstr "添加含关键词的标题"
+
+msgid "Keyword not in opening paragraph"
+msgstr "关键词不在开头段落"
+
+msgid "Add keyword near top"
+msgstr "在靠近顶部位置添加关键词"
+
+msgid "Keyword not in URL/slug"
+msgstr "关键词不在 URL/slug 中"
+
+msgid "Edit slug"
+msgstr "编辑 slug"
+
+msgid "Keyword not in meta description"
+msgstr "关键词不在 meta 描述中"
+
+msgid "Set SEO description"
+msgstr "设置 SEO 描述"
+
+msgid "No alt text with keyword on images"
+msgstr "图片缺少含关键词的 alt 文本"
+
+msgid "Add alt text"
+msgstr "添加 alt 文本"
+
+msgid "Content too short (<150 words)"
+msgstr "内容太短（<150 词）"
+
+msgid "Add more content"
+msgstr "添加更多内容"
+
+msgid "No statistics or data found — AI prefers data-backed content"
+msgstr "未找到统计数据 — AI 偏好有数据支撑的内容"
+
+msgid "Add numbers & data"
+msgstr "添加数字和数据"
+
+msgid "No citations or references — AI prefers verifiable content"
+msgstr "未找到引用或参考 — AI 偏好可验证的内容"
+
+msgid "Add quotes & sources"
+msgstr "添加引用和来源"
+
+msgid "Content was updated >90 days ago — AI prefers fresh content"
+msgstr "内容上次更新超过 90 天 — AI 偏好新鲜内容"
+
+msgid "Update content"
+msgstr "更新内容"
+
+msgid "Missing title/thumbnail/excerpt for schema"
+msgstr "缺少 Schema 所需的标题/缩略图/摘要"
+
+msgid "Fill in missing fields"
+msgstr "填写缺失字段"
+
+msgid "Too few internal links (need 3+)"
+msgstr "内部链接太少（需要 3+）"
+
+msgid "Link to related content"
+msgstr "链接到相关内容"
+
+msgid "Brand not found in knowledge graph"
+msgstr "品牌未在知识图谱中找到"
+
+msgid "Enable entity checks"
+msgstr "启用实体检查"
+
+msgid "Not mentioned on Wikipedia"
+msgstr "维基百科未提及"
+
+msgid "Not marked as on authoritative lists"
+msgstr "未标记为在权威列表中"
+
+msgid "Check box above"
+msgstr "勾选上方复选框"
+
+msgid "No recent AI crawler visits"
+msgstr "最近无 AI 爬虫访问"
+
+msgid "Wait for crawler activity"
+msgstr "等待爬虫活动"
+
+msgid "No reviews yet"
+msgstr "尚评价"
+
+msgid "Encourage reviews"
+msgstr "鼓励评价"
+
+msgid "Seen by <4 AI platforms"
+msgstr "被 <4 个 AI 平台发现"
+
+msgid "Connect more AI tools"
+msgstr "连接更多 AI 工具"
+
+msgid "Keyword density outside 0.5-2.5%"
+msgstr "关键词密度超出 0.5-2.5%"
+
+msgid "Adjust keyword usage"
+msgstr "调整关键词使用"
+
+msgid "llms.txt file is accessible"
+msgstr "llms.txt 文件可访问"
+
+msgid "robots.txt allows AI crawlers"
+msgstr "robots.txt 允许 AI 爬虫"
+
+msgid "Structured data (Schema) present"
+msgstr "结构化数据（Schema）已存在"
+
+msgid "AI tools connected to store"
+msgstr "AI 工具已连接到店铺"
+
+msgid "Page content readable without JavaScript"
+msgstr "页面内容无需 JavaScript 即可读取"
+
+msgid "FAQ or Q&A section included"
+msgstr "包含 FAQ 或问答区域"
+
+msgid "Search keyword appears in title"
+msgstr "搜索关键词出现在标题中"
+
+msgid "Search keyword appears in heading"
+msgstr "搜索关键词出现在标题中"
+
+msgid "Search keyword in first paragraph"
+msgstr "搜索关键词在首段"
+
+msgid "Search keyword in URL address"
+msgstr "搜索关键词在 URL 地址中"
+
+msgid "Search keyword in meta description"
+msgstr "搜索关键词在 meta 描述中"
+
+msgid "Search keyword in image alt text"
+msgstr "搜索关键词在图片 alt 文本中"
+
+msgid "Content length over 300 words"
+msgstr "内容长度超过 300 词"
+
+msgid "Includes statistics and data"
+msgstr "包含统计数据和数字"
+
+msgid "Includes citations and references"
+msgstr "包含引用和参考资料"
+
+msgid "Content updated within 30 days"
+msgstr "内容在 30 天内更新过"
+
+msgid "Complete metadata (title, image, excerpt)"
+msgstr "完整元数据（标题、图片、摘要）"
+
+msgid "Internal links to related pages"
+msgstr "内部链接到相关页面"
+
+msgid "Brand recognized in knowledge graph"
+msgstr "品牌在知识图谱中被识别"
+
+msgid "Brand mentioned on Wikipedia"
+msgstr "品牌在维基百科中被提及"
+
+msgid "Appears on authoritative lists"
+msgstr "出现在权威列表中"
+
+msgid "Recent AI crawler activity"
+msgstr "最近的 AI 爬虫活动"
+
+msgid "Customer reviews exist"
+msgstr "存在客户评价"
+
+msgid "Indexed by multiple AI platforms"
+msgstr "被多个 AI 平台索引"
+
+msgid "Keyword density in optimal range"
+msgstr "关键词密度在最佳范围内"
+
+msgid "AI reads raw HTML, not rendered pages. Heavy JavaScript can hide content."
+msgstr "AI 读取原始 HTML，而非渲染页面。大量 JavaScript 可能隐藏内容。"
+
+msgid "MCP (Model Context Protocol) lets ChatGPT and other AI tools directly query your store."
+msgstr "MCP（模型上下文协议）让 ChatGPT 和其他 AI 工具直接查询你的店铺。"
+
+msgid "llms.txt is a standard file that tells AI models what your website contains."
+msgstr "llms.txt 是告知 AI 模型你网站内容的标准化文件。"
+
+msgid "Problems"
+msgstr "问题"
+
+msgid "To Improve"
+msgstr "待改进"
+
+msgid "Good"
+msgstr "良好"
+
+msgid "Perfect AI Visibility!"
+msgstr "完美的 AI 可见度！"
+
+msgid "Can AI find me?"
+msgstr "AI 能找到我吗？"
+
+msgid "Technical discoverability: llms.txt, robots.txt, Schema, MCP"
+msgstr "技术可发现性：llms.txt、robots.txt、Schema、MCP"
+
+msgid "Relevance 🔒"
+msgstr "相关性 🔒"
+
+msgid "Search Relevance"
+msgstr "搜索相关性"
+
+msgid "How well your content matches the search query"
+msgstr "你的内容与搜索查询的匹配程度"
+
+msgid "Content Quality"
+msgstr "内容质量"
+
+msgid "Length, statistics, citations, freshness, structure"
+msgstr "长度、统计、引用、新鲜度、结构"
+
+msgid "Authority 🔒"
+msgstr "权威性 🔒"
+
+msgid "Brand Authority"
+msgstr "品牌权威性"
+
+msgid "Knowledge graph, Wikipedia, authoritative lists"
+msgstr "知识图谱、维基百科、权威列表"
+
+msgid "AI Activity"
+msgstr "AI 活跃度"
+
+msgid "Crawler visits, reviews, multi-platform reach"
+msgstr "爬虫访问、评价、多平台覆盖"
+
+msgid "Dimension Breakdown"
+msgstr "维度详情"
+
+msgid "Enter a Focus Query to unlock"
+msgstr "输入焦点查询以解锁"
+
+msgid "AI Visibility Trend"
+msgstr "AI 可见度趋势"
+
+msgid "This week:"
+msgstr "本周："
+
+msgid "Last:"
+msgstr "上次："
+
+msgid "AI visibility dropping"
+msgstr "AI 可见度下降中"
+
+msgid "Trend data will appear after next week"
+msgstr "趋势数据将在下周之后出现"
+
+#, php-format
+msgid "%d AI bots visited"
+msgstr "%d 个 AI 机器人访问过"
+
+#, php-format
+msgid "Last: %s"
+msgstr "上次：%s"
+
+msgid "S2LL Score"
+msgstr "S2LL 评分"
+
+#, php-format
+msgid "Shop2LLM Visibility Score: %d/100"
+msgstr "Shop2LLM 可见度评分：%d/100"
+
+msgid "✅ AI crawler rules added to robots.txt. Your content is now discoverable by AI."
+msgstr "✅ AI 爬虫规则已添加到 robots.txt。你的内容现已可被 AI 发现。"
+
+msgid "✅ robots.txt allows AI crawlers — 12 AI bots whitelisted. Your content is discoverable by ChatGPT, GPTBot, ClaudeBot and more."
+msgstr "✅ robots.txt 允许 AI 爬虫 — 12 个 AI 机器人已加入白名单。你的内容可被 ChatGPT、GPTBot、ClaudeBot 等发现。"
+
+msgid "⚠ robots.txt may block AI crawlers"
+msgstr "⚠ robots.txt 可能阻止 AI 爬虫"
+
+msgid "AI search engines cannot index your content. This reduces your AI Visibility Score."
+msgstr "AI 搜索引擎无法索引你的内容。这会降低你的 AI 可见度评分。"
+
+msgid "🛠 Fix robots.txt"
+msgstr "🛠 修复 robots.txt"
+
+msgid "Adds AI crawler rules to allow GPTBot, ClaudeBot & 10 more"
+msgstr "添加 AI 爬虫规则以允许 GPTBot、ClaudeBot 等 10+ 个机器人"

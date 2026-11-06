@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1544, initial-scale=1.0">
+<title>Shop2LLM Banner</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{
+  width:1544px;height:500px;overflow:hidden;
+  background:#0a0f1c;font-family:Inter,-apple-system,sans-serif;
+  color:#e2e8f0;-webkit-font-smoothing:antialiased;
+  display:flex;align-items:stretch;justify-content:center;
+}
+
+/* ── Left: Plugin Intro ── */
+.left{
+  flex:0 1 920px;padding:36px 20px 36px 56px;
+  display:flex;flex-direction:column;justify-content:center;
+  background:linear-gradient(135deg,#0f172a 0%,#0a0f1c 100%);
+}
+.logo-row{display:flex;align-items:center;gap:16px;margin-bottom:20px}
+.logo-icon{width:48px;height:48px;border-radius:12px;flex-shrink:0}
+.brand-name{font-size:32px;font-weight:800;letter-spacing:-0.5px;
+  background:linear-gradient(135deg,#3b82f6,#8b5cf6);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent}
+
+.hero-line{font-size:30px;font-weight:800;color:#f1f5f9;line-height:1.3;margin-bottom:24px}
+.hero-line span{background:linear-gradient(135deg,#3b82f6,#8b5cf6);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent}
+
+.features{display:flex;flex-direction:column;gap:12px}
+.feat{display:flex;align-items:flex-start;gap:8px;padding-left:0}
+.feat svg{flex-shrink:0;margin-top:4px}
+.feat-body{font-size:14px;color:#94a3b8;line-height:1.6}
+.feat-body .q{color:#e2e8f0;font-weight:600}
+.feat-body .a{color:#94a3b8}
+
+/* ── Right: Two Review Cards ── */
+.right{
+  width:440px;padding:18px 0 18px 24px;
+  display:flex;flex-direction:column;gap:14px;justify-content:center;
+  background:#0a0f1c}
+.review-card{
+  background:#111827;border:1px solid rgba(255,255,255,0.06);
+  border-radius:14px;padding:22px 24px}
+.r-header{display:flex;align-items:center;gap:14px;margin-bottom:14px}
+.r-badge{flex-shrink:0;width:48px;height:48px;border-radius:8px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:28px;font-weight:800;line-height:1}
+.r-badge.a{background:#0f172a;border:2px solid #22c55e;color:#22c55e}
+.r-badge.pass{background:#0f172a;border:2px solid #22c55e;color:#22c55e}
+.r-source{font-size:14px;color:#64748b;font-family:Georgia,'Times New Roman',serif;font-style:italic}
+.r-title{font-size:17px;color:#cbd5e1;font-family:Georgia,'Times New Roman',serif;margin-top:2px}
+.r-metrics{display:flex;flex-direction:column;gap:7px}
+.r-metric{font-size:14px;color:#94a3b8;font-weight:500;display:flex;align-items:center;gap:8px}
+.r-metric .val{color:#22c55e;font-weight:600}
+.r-footer{margin-top:12px;padding-top:10px;border-top:1px solid rgba(255,255,255,0.04);
+  font-size:12px;color:#64748b;font-weight:500}
+.r-footer .val{color:#22c55e;font-weight:600}
+</style>
+</head>
+<body>
+
+<!-- ── Left Panel ── -->
+<div class="left">
+  <div class="logo-row">
+    <img class="logo-icon" src="Shop2LLM.png" alt="Shop2LLM" width="48" height="48">
+    <div class="brand-name">Shop2LLM</div>
+  </div>
+
+  <div class="hero-line">AI is the new search.<br><span>Make sure it finds you.</span></div>
+
+  <div class="features">
+    <div class="feat">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2.5" stroke-linecap="round"><path d="M20 6 9 17l-5-5"/></svg>
+      <div class="feat-body">
+        <span class="q">ChatGPT can't see your store?</span><br>
+        <span class="a">Fix that in 60 seconds — one click, zero config.</span>
+      </div>
+    </div>
+    <div class="feat">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2.5" stroke-linecap="round"><path d="M20 6 9 17l-5-5"/></svg>
+      <div class="feat-body">
+        <span class="q">Are AI bots already crawling your site?</span><br>
+        <span class="a">See who, when, and what they read — 12 crawlers tracked live.</span>
+      </div>
+    </div>
+    <div class="feat">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2.5" stroke-linecap="round"><path d="M20 6 9 17l-5-5"/></svg>
+      <div class="feat-body">
+        <span class="q">Will this conflict with my SEO plugins?</span><br>
+        <span class="a">Zero conflict. llms.txt + JSON-LD are auto-injected — works alongside Yoast, RankMath, and all others.</span>
+      </div>
+    </div>
+    <div class="feat">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2.5" stroke-linecap="round"><path d="M20 6 9 17l-5-5"/></svg>
+      <div class="feat-body">
+        <span class="q">How well am I doing?</span><br>
+        <span class="a">Real-time 7-factor AI Visibility Score with fix guidance — right in your dashboard.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Right Panel: Reviews ── -->
+<div class="right">
+  <!-- MakeWPFast -->
+  <div class="review-card">
+    <div class="r-header">
+      <div class="r-badge a">A</div>
+      <div>
+        <div class="r-source">MakeWPFast.com</div>
+        <div class="r-title">"A Speed Score That Holds Up"</div>
+      </div>
+    </div>
+    <div class="r-metrics">
+      <div class="r-metric">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        A-rated — safe on any hosting
+      </div>
+      <div class="r-metric">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2" stroke-linecap="round"><path d="M8 12h8"/></svg>
+        Overall impact: <span class="val">Low</span>
+      </div>
+      <div class="r-metric">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        3-context benchmark — <span class="val">all A-rated</span>
+      </div>
+      <div class="r-metric">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M8 12h8M12 8v8"/></svg>
+        <span class="val">+0</span> MB · <span class="val">+0</span> queries · <span class="val">+6ms</span> TTFB (WP Admin)
+      </div>
+    </div>
+    <div class="r-footer">WP 6.9 + PHP 8.3</div>
+  </div>
+
+  <!-- PluginTests -->
+  <div class="review-card">
+    <div class="r-header">
+      <div class="r-badge pass">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+      </div>
+      <div>
+        <div class="r-source">PluginTests.com</div>
+        <div class="r-title">"Clean Smoke Test — Zero Errors"</div>
+      </div>
+    </div>
+    <div class="r-metrics">
+      <div class="r-metric">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round"><path d="M20 6 9 17l-5-5"/></svg>
+        No PHP errors · No JS exceptions · No resource errors
+      </div>
+      <div class="r-metric">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round"><path d="M20 6 9 17l-5-5"/></svg>
+        All test pages loaded — Looks good!
+      </div>
+    </div>
+    <div class="r-footer">Memory: <span class="val">94 KiB</span> · Speed impact: insignificant · WP 7.0 + PHP 8.1.12</div>
+  </div>
+</div>
+
+</body>
+</html>

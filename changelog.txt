@@ -1,0 +1,382 @@
+*** Shop2LLM Changelog ***
+
+2026-11-06 — version 1.10.1 (Self-Hosted Update Channel) — GitHub distribution channel launch; wordpress.org installs are completely unaffected
+
+* New - Self-hosted update channel: GitHub-channel zips carry a selfhost-channel.php marker plus an "Update URI" header, activating a cloud update checker (mirrors the Shop to LLM Pro pattern — pre_set_site_transient_update_plugins injection, plugins_api details modal, 6-hour negative cache) so installs that cannot reach wordpress.org still receive every release from shop2llm.com. Each update check reports site URL + plugin/WP/PHP versions to api.shop2llm.com (disclosed in readme and on shop2llm.com/install) — this is how self-hosted installs are counted. The wordpress.org package contains no marker, no updater class and no telemetry: this file and the marker-gated loader in the main plugin file are excluded from the svn tree by deploy/svn-push-shop2llm.sh
+* Maintenance - version bump for the dual-channel release discipline (deploy/build-shop-to-llm-zip.sh now produces the GitHub zip and deploy/prod/free-plugin-version.txt from the same source tree the SVN push publishes)
+
+2026-11-05 — version 1.10.0 (One-Click Connect + Official AI Display Data Guidance) — activation/distribution release: the connection flow drops from four manual steps to two, and the first official AI-answers data source (Search Console) gets an in-plugin guidance card
+
+* New - One-click connect: Settings → Test It Yourself collapses from four manual steps (show config → copy → find the client setting → paste) to two — "Add to ChatGPT" copies the MCP link and opens chatgpt.com/#settings/Connectors, "Add to Claude" copies the full mcpServers config JSON and opens claude.ai/settings/connectors (stlConnectChatGPT/stlConnectClaude in admin.js; clipboard API when the admin host is a secure context, execCommand fallback otherwise). The collapsible config block, API key and endpoint rows stay untouched for the manual Desktop flow, and the dashboard wizard's Connect step gains an "Add to Claude →" link beside "Open ChatGPT →". "Verify connection" (the existing mcp_check asset — real MCP initialize handshake, or shop2llm/* abilities count when the official MCP Adapter stack is active) is now embedded in the Settings card so feedback lands immediately after pasting
+* New - One-time review ask on the first successful verification (M1 family): mcp_check success payloads carry review_ask=true exactly once per site (new option shop2llm_connect_verified_at gates the single fire; the shared shop_to_llm_review_gate keeps the 2-lifetime / 14-day / 30-day-dismiss caps intact), and both verify surfaces (AI Agents tab row, Settings card) render the same amber one-liner as the Hero first-success ask
+* New - GSC AI-insights guidance card: dashboard Overview card (existing card vocabulary, #4285f4 left border) in three option-gated states (shop2llm_gsc_insights_state: '' → 'connected' → 'dismissed' via the shop2llm_gsc_state AJAX action, standard capability + nonce pattern). Default state is the activation hook — Search Console's official AI display data is free and globally available since August 2026, with a deep link to search.google.com/search-console; the user-confirmed "connected" state explains how to read the Performance report and maps it to existing actions (high AI impressions + few clicks → AI Score card; pages never appearing → check /llms.txt coverage). Deliberately guidance-only: GSC OAuth was removed in v1.6.1, and the card never claims Shop2LLM pulls or displays Google data — every sentence stays within the verifiable-claims rule
+* Docs - readme.txt gains the 1.10.0 changelog, the How-it-works Connect step and Installation steps now describe the one-click path, and a new FAQ ("Where can I see which pages appear in AI answers?") covers Search Console's AI display data plus the two Shop2LLM follow-up actions
+
+2026-11-05 — version 1.9.0 (Official AI Stack Nativization + MCP 2026-07-28) — first plugin of its class to follow the official WordPress AI stack posture (competitors all keep self-built endpoints only)
+
+* New - Abilities API registration: the ten MCP tools are mirrored 1:1 as read-only WordPress abilities in the shop2llm namespace (category "shop2llm", input_schema from the existing tools/list JSON Schema, output_schema object, execute_callback delegating to the same shop_to_llm_tools_call implementations, permission_callback __return_true — transport layer gates access). Registered on wp_abilities_api_categories_init / wp_abilities_api_init which only fire when the Abilities API plugin is active, so there is no hard dependency and no Requires Plugins header. meta.mcp.public=true + mcp.type=tool opts each ability into the official MCP Adapter's default server; meta.annotations declare readonly=true / destructive=false / idempotent=true. No tool count change: 10 tools stay 10 (free tier untouched)
+* New - Official-stack detection and ceding: shop_to_llm_official_mcp_stack_active() = function_exists('wp_register_ability') && (did_action('mcp_adapter_init') || class_exists('\WP\Mcp\McpAdapter')). When active, the built-in /wp-json/shop2llm/v1/mcp REST route is NOT registered (the adapter's default server at /wp-json/mcp/mcp-adapter-default-server serves the abilities) so the same capabilities are never double-served; without the official stack the built-in endpoint works exactly as before. shop_to_llm_mcp_endpoint_url() helper centralizes the choice and all twelve hardcoded endpoint references were converted (/.well-known/mcp discovery, llms.txt, agents.md, llms-full MCP section, get_store_overview, ACP catalog, settings page cards, hero test, health checklist)
+* New - MCP 2026-07-28 support on the built-in endpoint: server/discover (spec-required, returns resultType=complete, supportedVersions, capabilities, serverInfo in _meta, LLM instructions, ttlMs/cacheScope); per-request version negotiation reading params._meta["io.modelcontextprotocol/protocolVersion"] or the MCP-Protocol-Version header, answering UnsupportedProtocolVersionError (-32022) with the supported list for unknown versions; MCP-Protocol-Version response header on success and version-error paths. Legacy clients (no _meta, no header) are served statelessly exactly as before — dual-era per spec
+* Fix - Hero "Test MCP" self-test: with the official stack active it verifies locally (counts shop2llm/* abilities via wp_get_abilities) instead of probing the retired endpoint; without the stack the live JSON-RPC initialize handshake is unchanged
+
+2026-11-05 — version 1.8.0 (Output Permission Hardening + Content-Signal 3+1) — security remediation release modeled on the Website LLMs.txt 8.5.4-8.6.0 incident classes
+
+* Security - Logged-out visitor rendering for every AI-facing content read: new shared helper shop_to_llm_public_content_html() renders a post through the full the_content filter chain with wp_set_current_user(0) for the duration (original user restored in a finally block), so membership/paywall plugins that hide protected sections for anonymous users behave identically when the catalog is built — including the realistic case of an admin triggering generation (View /llms.txt click, one-click regenerate, cloud proxy callback with an authenticated cookie), which previously built the cache with admin-visible content. Callers converted: /llms-full.txt post+page blocks (was raw $post->post_content), MCP get_product non-Woo description + excerpt fallback (was raw post_content), MCP search_products non-Woo excerpt fallback, per-page .md mirror body + generated frontmatter description for non-product types (products stay raw — public catalog data by definition, and the_content filters can expand commerce shortcodes unpredictably). Same incident class Website LLMs.txt fixed across 8.5.4-8.6.0; readme gains a verifiable claim FAQ ("Can Shop2LLM expose my members-only content to AI?")
+* Security - Password-protected posts excluded from all AI outputs: has_password=false added to the /llms.txt posts query, /llms-full.txt posts+pages queries, MCP get_store_overview latest_posts and the .md slug resolver; get_product and the .md path resolver additionally reject any resolved post with a non-empty post_password (password-protected posts carry post_status=publish, so status-only checks passed them straight through with title, URL and full content). MCP search already had has_password=false — contract now uniform across every output face
+* Security - Output escaping audit (no changes required, verified): llms.txt/llms-full.txt titles esc_html + URLs esc_url + prices html_entity_decode'd plain text, MCP payloads via wp_json_encode, /product-feed.xml esc_xml with per-line phpcs exemptions, robots.txt static strings + home_url, policy JSON-LD configuration values only; includes/*.php contain no post_content/post_excerpt reads
+* New - Content-Signal 3+1: the opt-in AI usage policy's machine-readable line gains the fourth "use" field from Cloudflare's July 2026 Content Signals extension — open → ai-train=yes, search=yes, ai-input=yes, use=full; attribution → ai-train=no, search=yes, ai-input=yes, use=reference; closed → ai-train=no, search=no, ai-input=no, use=immediate (semantics per developers.cloudflare.com: immediate=interact but store nothing, reference=index/excerpt/link back, full=summarize and reproduce; verified against contentsignals.org and Cloudflare docs 2026-11-05). Still opt-in via the existing policy select (default off), still emitted through the priority-1 robots_txt banner; robots.txt card copy and the readme crawler-controls FAQ updated to say declarative-preference-not-enforcement in plain terms
+
+2026-10-17 — version 1.7.1 (IndexNow Auto-Push + Onboarding Auto-Search) — funnel repair release, driven by production telemetry
+
+* New - IndexNow auto-push (zero-config discovery acceleration): shop_to_llm_indexnow_push() notifies api.indexnow.org (Bing, Yandex, Naver, Seznam, Yep, Mojeek) whenever discovery artifacts or content change — ported from the Pro IndexNow module (class-indexnow.php), same wire protocol (host/key/keyLocation/urlList JSON), free version is always-on with no settings surface. Triggers: deferred activation setup (first admin load, non-blocking 5s timeout — fast-activation principle preserved), weekly snapshot cron (add_action('shop2llm_weekly_snapshot')), WooCommerce product create/update/stock-change, and transition_post_status for any post type going public (each pushes permalink + /llms.txt). Etiquette: shared 60s throttle transient; Google sitemap ping carries its own 60-minute cooldown. Key verification served at the fixed path /indexnow.txt from the v1.5.4 parse_request fallback router (spec allows any keyLocation on the verified host — no rewrite rules, no flush, shadow-collision-proof); key generated lazily via wp_generate_password(32, false), no activation cost. Successful pushes write funnel telemetry event 'url_submitted' (new case in shop_to_llm_log_event + 'url_submitted' field in the behavior upload — additive JSON, targets the measured url_copied=0 deadlock: no user ever copies URLs manually, so the submission step is automated instead)
+* New - Fifth activation-proof card "Index Push": same card grid/markup/classes as the existing four ('globe' icon), shows "%d URLs · %s ago" from the bounded (last-10) push log option shop2llm_indexnow_log, or "Queued on next visit" before the first successful push — the "已提交" visibility required without adding any settings UI
+* Improvement - Hero Test Search now runs itself until the first aha: the v1.3.13 auto-search guard (stlAutoSearch) expands from activation-day-only ($justActivated) to any dashboard view while behavior_summary['first_search'] is empty — production telemetry showed 3 of 4 consenting sites stuck on pre-1.4 builds never completed a first search because the old guard could not fire for them again. Server-side dedup is unchanged (shop_to_llm_log_event records 'first_search' on the first attempt, success or failure), so the auto-run executes at most once per site; daily quota guard (5/day) still applies
+* Telemetry - Behavior upload fields gain 'url_submitted' (additive); funnel dashboard SQL updated on the cloud side to count only consented sites with non-empty behavior (see deploy/prod metrics-collector notes)
+
+2026-10-17 — version 1.7.0 (Markdown Mirrors + ACP Readiness + IETF MCP Discovery + Content Signals)
+
+* New - Markdown mirrors for AI coding agents: every published post, page and product is additionally readable at <permalink>.md (e.g. /my-post.md) and any singular URL negotiates to clean Markdown when the client sends Accept: text/markdown (Claude Code, Copilot workspace, Cursor and OpenCode list that media type in HTTP_ACCEPT; browsers never do, so negotiation can only trigger for machine clients). Delivery rides the proven v1.5.4 parse_request URI-fallback lane (priority 99, wins the race against plugin rewrite collisions; /agents.md excluded from the .md pattern; non-matching paths return control to WordPress untouched). shop_to_llm_html_to_markdown() converts via DOMDocument with a recursive walker (headings, paragraphs, lists, tables, links, images, strong/em/code/pre/blockquote/hr; script/style/nav/footer/aside/form/iframe and friends stripped; unknown tags fall through as transparent containers) — dependency-free by design, zero bundled libraries. Output is YAML frontmatter (title, author, published/modified ISO-8601, lang, description, permalink, categories, tags — scalars emitted via wp_json_encode so quoting is correct; product posts add price, currency, availability, sku, gtin) plus the converted body and a Price & Availability section for products. Mirrors carry Content-Type: text/markdown, X-Robots-Tag: noindex (duplicate-content protection) and Cache-Control: no-cache (cache-plugin compatibility precedent); per-post transients are self-invalidating via a post_modified_gmt key hash, so no invalidation hooks are needed
+* New - ACP / ChatGPT Shopping feed readiness (WooCommerce stores): shop_to_llm_acp_feed_readiness() audits the live catalog (latest 100 published products, same query shape as the XML feed) against the five fields OpenAI's discovery-first shopping experience reads — title (present, ≤150 chars), description (present, ≤5000 chars), price (>0), availability (in-stock), image (featured asset) — plus GTIN as the recommended field. Score 0-100 = 0.9 × average required-field pass rate + 0.1 × GTIN coverage (mirrors the cloud dashboard formula), ready threshold ≥80. Renders as a fourth card in the existing activation proof strip (same markup/classes, 'package' icon, "ACP N/100" live badge; gap text lists up to three concrete fixes e.g. "Fix: 3 missing images, 2 missing prices to raise your ACP score") — only on WooCommerce sites, only when products exist; hourly transient invalidated on save_post_product and woocommerce_update_product alongside the product-quality cache. Readme FAQ documents the honest path: merchants apply at chatgpt.com/merchants, no plugin can guarantee a listing
+* New - IETF MCP discovery manifest at /.well-known/mcp-server (draft-serra-mcp-discovery-uri-04): agents resolving a bare domain can now discover the site's MCP endpoint without out-of-band configuration. Manifest per spec §6.13/§6.14 — required fields mcp_version ("2025-06-18", synchronized with the MCP initialize default), name, endpoint (rest_url('shop2llm/v1/mcp'), host matches retrieval host per §6.8), transport "http" (spec's value for JSON-RPC-over-HTTPS); recommended fields description, capabilities ["tools"], trust_class "public", auth {required, apikey} (mirrors the real Bearer-token posture), languages (from site locale), docs, last_updated, expires (+7 days), cache_ttl 3600. Served with Content-Type: application/json, X-Robots-Tag: noindex, Cache-Control: public, max-age=3600, hourly transient cache; reachable three ways — dedicated rewrite rule (^\.well\-known/mcp\-server$, registered on init and in the deferred activation setup), template_redirect query-var renderer, and the parse_request URI fallback (dot-directories are shadow-prone on some hosts, the fallback wins the race)
+* Improvement - AI usage policy upgrades from comment-only to the standard Content-Signal directive (contentsignals.org): the robots.txt section now appends a machine-readable "Content-Signal:" line mapped from the existing three modes — open → ai-train=yes, search=yes, ai-input=yes; attribution → ai-train=no, search=yes, ai-input=yes; closed → ai-train=no, search=no, ai-input=no — while the human-readable comment banner stays untouched; still opt-in and off by default
+* Docs - readme.txt: two new FAQ entries ("How do I get my products into ChatGPT shopping?" — ACP readiness + chatgpt.com/merchants with an explicit no-guarantee disclosure; "Does Shop2LLM serve Markdown versions of my pages to AI agents?"), the crawler-controls FAQ now mentions the Content-Signal directive, and the free-feature list gains the Markdown-mirror and ACP-readiness bullets
+
+2026-10-11 — version 1.6.1 (Activation Zero-Fail + Local Aha Proof + Lean)
+
+* Fix - Activation hardened against restricted shared hosting: catalog generation (llms.txt / llms-full.txt / agents.md), rewrite registration + flush and both CREATE TABLE statements (crawler log, AI referrals) moved out of the activation request into shop_to_llm_run_deferred_setup() — a guarded one-shot setup on the first admin load (admin_init priority 5, before the activation redirect at priority 10, gated by a one-shot shop2llm_pending_setup flag; SEO default options grouped alongside). Every step is individually try/catch-wrapped and PHP warnings/notices are converted to caught exceptions via a scoped set_error_handler, so a DB user without CREATE privilege or a short max_execution_time can no longer fatal or time out the activation — previously the #1 silent install-killer (activation white-screen → instant delete, invisible to telemetry because the funnel logs only start after a successful activation). Cron scheduling stays in the activation hook (cheap option writes); the v1.5.4 URI-level parse_request fallback continues to serve /llms.txt even before the first admin load
+* New - Local aha proof in the Hero Test Search: when the cloud AI reply is unavailable, the AJAX response now carries an llms_preview payload (first 6 non-empty non-separator lines of the live /llms.txt catalog, 110-char per-line cap, served from the hourly shop_to_llm_llms_txt_output transient — rebuilt only on a miss, computed only on the failure path so the happy path costs nothing) and the results render a green "AI can already read your site catalog" card with a monospace preview block, a direct View /llms.txt link and the retry button — replacing the red "AI temporarily unavailable" dead-end and also covering the no-match case. The value moment ("AI can read this") no longer depends on the cloud proxy, ChatGPT Connector tiers or DeepSeek reachability
+* Removal (Lean) - Classic SEO plumbing deleted (~4,100 lines, main file 15,915 → 11,833): Redirect Manager + 404 log + CSV import (2 DB tables s2ll_redirects / s2ll_404_log no longer created), XML sitemap generator (WP 5.5+ ships wp-sitemap.xml), Google Search Console OAuth integration + credentials UI, SEO audit + weekly email report + shop2llm_seo_weekly_audit cron, Yoast/Rank Math one-click migration, broken link checker, image alt-text audit, cloud AI keyword/schema suggestions (DeepSeek calls + s2ll_seo_ai_* ajax + local keyword extraction), Flesch/keyword-density Content Analysis engine + meta box, CJK N-gram optimizer, per-list SEO columns + Quick Edit + internal-link suggestions. Rationale: on the majority of installs with an existing SEO plugin these modules were auto-disabled dead weight (has_seo_plugin() gates), activation evidence (cowboy-mcp 268 lines → 800 activations vs our 15,915 lines → 0) shows winners are zero-config and single-purpose, and the classic-SEO surface duplicated Yoast/Rank Math where we cannot win. uninstall.php keeps dropping legacy tables/options/crons so upgrader DBs self-clean
+* Lean UX - The six editor meta boxes (Visibility Score, SEO Settings, Content Analysis, AI Extractability, Schema, OG Image) merge into one tabbed "Shop2LLM — AI Visibility & SEO" side box (panels reuse the existing renderers; Content Analysis panel removed; Extractability now gated by the repurposed shop_to_llm_seo_analysis toggle); the SEO tab drops GSC/overlap/trend/audit/redirect/sitemap cards and keeps module toggles (meta/OG/schema + Extractability), title templates and the comparison card; GSC options, audit/migrate nonces and the onboarding-banner migration hook are removed; Kept intact: meta tags, Open Graph + OG image, 19 JSON-LD schema types, policy schema, and the complete AI layer (MCP, llms.txt family, robots invites, crawler monitoring, Hero Test Search, all four scores)
+* Docs - Activation Doctor command path corrected to the actual wp.org install directory (wp-content/plugins/shop2llm/tools/activation-doctor.php, was shop-to-llm) and the SEO-audit funnel line removed. Behavioral test harness for the v1.6.1 activation logic passed 22/22: deferred-setup flag one-shot semantics, per-step exception containment, warning containment (no leak to admin output), flush-failure fallback to the options loop, llms-preview transient hit/miss/build-failure paths, line filtering and 110-char truncation
+* Removal (Lean 2) - Mock GA4 dashboard deleted from the AI Traffic tab (168 lines of charts that read nothing: GA4 integration is a Pro feature, so the Free mock panel was an unverifiable claim under Guideline 9 — the readme already listed GA4 under Pro) and the dead CJK optimizer settings card removed (its engine was deleted in the first pass; the card was a zombie). Settings Jump-to navigation updated accordingly (GA4/CJK buttons out, SEO button in). Main file now 11,612 lines (-27% vs 1.6.0's 15,915)
+* Lean UX 2 - The remaining SEO tab (module toggles, title templates, competitor comparison card) merges into the Settings tab tail — admin tabs 6 → 5 (Dashboard, AI Traffic, AI Agents, Analytics, Settings); nothing user-facing is lost and the comparison card now reads "UCP Readiness Score (5-dim, 100-pt)"
+* UCP - Readiness Score streamlined 7 → 5 dimensions, every point now earnable on Free: Agentic (20) and MCP (10) merge into one "MCP & Agentic" (25) keeping all three real signals (MCP tools 12 + /.well-known/mcp discovery probe 8 + AI Crawler Registry 5); the Checkout Kit dimension (10, Pro-locked on Free) is removed — it made a perfect 100 unreachable on Free installs and read as a permanent red mark. New weights: Catalog API 25 (Store/REST API 15 + product-feed.xml 10) / MCP & Agentic 25 / llms.txt 20 (reachable 12 + content 8) / Schema 20 (types 12 + output 8) / robots.txt 10 (Allow rules 6 + no Disallow 4). Non-WooCommerce sites now earn Catalog API via core REST + an N/A-full-credit feed factor (same precedent as the AI Visibility feed factor) instead of a guaranteed 0. Checkout Kit stays surfaced as a one-line Pro note under the panel
+* Copy (Guideline 9) - Pro CTA card made strictly factual and plain-spoken: "6 AI platforms, always-on connection, unlimited API calls, 30-day analytics — $9/mo" → "Your store connects to 5 AI platforms automatically — $9/mo" (store-perspective automation framing chosen from 4 style candidates; every claim verifiable: the count 5 matches the readme Pro platform list — Claude, Gemini, Copilot, Meta AI, Amazon Bedrock; "connects automatically" states the factual difference from Free, where the connection URL is pasted into ChatGPT Connectors manually; no unprovable "unlimited"/"always-on", no outcome promise — narrative drafts "Pro lets it sell" rejected as implying a guaranteed sales result, "agent-ready checkout" rejected as jargon)
+* Conversion (audit v3 P1-3) - One-click ChatGPT connection: the wizard "Connect to ChatGPT" step and the Settings connection card now carry an "Open ChatGPT Connectors →" button beside Copy (opens chatgpt.com's Connectors settings in a new tab), collapsing the manual flow (copy URL → open ChatGPT → find Settings → Connectors → paste) to two steps — aligning the activation-to-connection funnel with the highest-activation MCP competitor (vibe-ai's single Connect button, 60,000 active installs; wp.org API census 2026-10-11)
+* Listing (audit v3 P1-4 + tags) - readme Description now leads with the activation-instant result ("Activate Shop2LLM and your site is instantly readable… the moment you activate. No account, no API key, no cloud signup") instead of the sitemap-vs-AI explainer; tags swap gemini → aeo (GEO/AEO remain in the plugin title) to match category search terms; release cadence target set to weekly minors after 1.6.1 (winners publish 28-99 releases)
+* Release note - This is the release gate for the activation-conversion remediation: wp.org census shows active_installs near zero against ~1,900 downloads (about 40-45% of downloads are version-update refetches across 28 releases; the rest churned on the PHP 8.1 declaration era, the WooCommerce-dependency era, activation fatals and the cloud-only aha path). 1.6.1 removes the last two self-owned breakpoints and sharpens the listing to a single AI-layer narrative; next measurement window should read active_installs, not downloads
+
+2026-10-10 — version 1.6.0 (First-Screen Overhaul: Abundance + Proof, Complete-Content Catalog)
+
+* New - Activation proof strip on the Dashboard: three live-status cards (llms.txt "Live" + View direct link, robots.txt "51 AI crawlers allowed" + View, Product Feed live) render directly under the Hero Test Search, so activation value is verifiable in the first screen — replaces the scarcity/failure first impression with an abundance + proof narrative
+* New - Dedicated /llms-full.txt endpoint (llmstxt.org spec): the URL previously aliasing the /agents.md dossier now serves a true complete-content catalog — every published product (top 200 by popularity) expands into a full markdown block with URL, price, availability, SKU, categories, tags and the complete description (4,000-char per-item cap, both filterable via shop2llm_llms_full_max_items / shop2llm_llms_full_max_item_chars); non-WooCommerce sites get full posts + pages; shares the Languages / AI Access / Store Policies sections with llms.txt, same no-cache contract, hourly transient invalidated on product save/update
+* New - Multilingual llms.txt: Polylang (pll_languages_list), WPML (wpml_active_languages) and TranslatePress (trp_settings) detection adds a "## Languages" section to /llms.txt listing every active locale with its home URL, so AI agents can retrieve content in all languages (monolingual sites emit no section)
+* New - Dashboard onboarding video slot: a "Watch how it works" YouTube embed card renders when SHOP_TO_LLM_YOUTUBE_DEMO_URL is defined and hides itself while the constant is empty (youtube-nocookie embed, 16:9 responsive)
+* Improvement - AI Score card fully un-gated: robots.txt fix, permalink flush and feed rewrite fix actions are now free one-click actions for everyone (pro_only flags and the inline "Auto-fix with Pro" / "N auto-fixes require Pro" buttons removed); the Pro entry collapses to a single subtle text line at the card bottom
+* Improvement - Generous-free rate limits: S2LL_AI_LIMIT_MINUTE 3→20 and S2LL_AI_LIMIT_HOUR 10→100, so real ChatGPT sessions and the Hero Test Search no longer hit short-window walls; the hero "N tests left today" quota badge and the "5 free tests per day" footer mention are removed (day/month caps unchanged and no longer surfaced in the UI)
+* Improvement - Competitor comparison wall ("Everything below is free — no upsell needed" vs Yoast/Rank Math) moved off the dashboard first screen into a collapsed <details> card at the bottom of the SEO tab (dismiss machinery removed) as part of flattening the tab to a single page: the Settings/Overview/Redirects/Sitemap sub-tabs are gone, redirects and sitemap render inline as Overview-style stl-cards with hash deep-links (#stl-seo-redirects / #stl-seo-sitemap), rare configuration (module toggles, title templates, GSC credentials) collapses into a details card, and legacy ?subtab= URLs 301-redirect to tab=seo; deep links now actually land on the right tab — on load the ?tab= URL param (or the tab panel containing the location.hash target) activates its tab, which previously never happened (tab URLs always showed the Overview default, leaving hash deep-links pointing at hidden content)
+* Improvement - Cache compatibility: /llms.txt now responds with Cache-Control: no-cache, must-revalidate, max-age=0 + Pragma: no-cache so LiteSpeed Cache, WP Rocket, W3 Total Cache and Cloudflare never serve a stale catalog after product changes; readme FAQ documents it
+* Improvement - Header tagline repositioned from product-only ("Get your products discovered...") to site-wide AI visibility ("Make your entire site visible to ChatGPT and AI search — products, posts and pages")
+* New - AI Visibility Score grows from 8 to 10 factors: an llms-full.txt reachability factor (8 points — HTTP probe of /llms-full.txt with rewrite-rule fallback, cached in the shop2llm_llms_full_accessible transient) and a multilingual factor (4 points — detects Polylang/WPML/TranslatePress and whether languages are actually configured; sites without a translation plugin score full marks, mirroring the feed-factor N/A precedent); weights rebalanced robots 14 / llms 14 / llms-full 8 / schema 12 / MCP 12 / feed 10 / queries 8 / crawlers 8 / policy 10 / multilingual 4 = 100; wizard step-3 and diagnostics thresholds move 8 → 10 passing factors
+* New - AI Traffic tab per-crawler leaderboard: bot_breakdown query in shop_to_llm_get_crawler_analytics() aggregates visits/pages/last-seen per bot (top 12, 30-day window) rendered as a stl-data-table with proportional purple bars and humanized "last seen" times; AI Search Activity widens from today-only to a 7-day window (per-day transients now persist 7 days, merged newest-first at read time — no migration, no full-history recompute) with a When column and 30 visible rows
+* New - One-click Focus Query ideas: unmatched ("No match") AI search terms get an inline Add button in the AI Traffic table; selections post to the new shop2llm_add_focus_idea AJAX action (add/remove modes) and render as removable chips (shop_to_llm_focus_query_ideas option, cap 30) above the Focus Query card, turning dead-end queries into a shortlist for the next focus query
+* New - AI Agents tab MCP verification + evidence: a "Verify connection" button runs a one-click JSON-RPC initialize handshake against your own /wp-json/shop2llm/v1/mcp endpoint (mcp_check admin asset, shows success badge with latency) and a "Recent MCP activity" strip lists the last 5 real tool calls (agent label derived from User-Agent, tool name, time-ago) recorded by the MCP handler (shop_to_llm_mcp_call_log option, cap 20)
+* New - SEO tab Search Console onboarding + correlation: the disconnected state becomes a three-step setup guide (Google Cloud project link → SEO Settings credentials → Connect); when connected, an "AI × Search Overlap" card joins 30-day AI crawler visits against GSC queries via slug-token matching (✓ match highlighted) and a pure-CSS 30-day crawl-trend sparkline visualizes daily bot activity
+* New - SEO audit one-click fixes: audit results render each problem on its own row with an inline action — meta_desc / canonical / noindex problems get a Fix button posting to the new shop2llm_seo_fix_item AJAX handler (generates a ≤155-char description into _shop2llm_meta_desc, points _shop2llm_canonical at the permalink, deletes the _shop2llm_noindex flag), all other problems deep-link to the post editor; buttons flip to ✓ with the server message on success
+* Improvement - Settings tab gets a "Jump to" anchor navigation (General / Connection / AI Platforms / Crawler / GA4 / CJK) with smooth scroll + brief purple highlight, and key toggles show a purple "Recommended" badge while their value is off the recommended setting (Product Search, AI Badge, Crawler Log, Entity Checks)
+
+2026-10-09 — version 1.5.7 (Requires PHP 8.1 → 8.0)
+
+* Improvement - Minimum PHP requirement lowered from 8.1 to 8.0 to match the code's actual floor: the only PHP 8.x features in use are match() expressions and str_starts_with()/str_contains() (all PHP 8.0); no 8.1-only syntax exists (the two 'enum' matches are an MCP tool parameter key and a doc comment, not language constructs). WordPress.org PHP stats show 8.0 still powers 3.9% of sites that the conservative 8.1 declaration blocked from one-click wp-admin install
+
+2026-10-09 — version 1.5.6 (wp.org SEO: Keyword-Phrased Listing + Value-Moment Rating Loop)
+
+* New - Value-moment rating loop replaces the milestone review system: M1 asks inline in the Hero Test Search results the moment the first successful search completes (server-flagged review_ask in the AJAX response, rendered inside the results container — not an admin notice); M2 asks inside the AI Crawler Activity card when the first real crawler visit is visible on the AI Traffic tab; M3 is a day-30 fallback notice on Dashboard/Plugins. All three share one gate: max 2 lifetime asks (shop2llm_review_asks), >=14 days between asks (shop2llm_review_last_ask), and dismiss (shop2llm_review_last_dismiss) re-asks after 30 days instead of silencing forever — wp.org review-guideline compliant, no gating or incentives. Visuals deliberately identical to the pre-1.5.6 review surfaces (amber ⭐ one-liner in hero results, the v1.3.2 indigo gradient review card with ★ Leave a 5-Star Review / Maybe later in AI Traffic, the day-7-style indigo notice for M3) — only the trigger/gate logic is new
+* Improvement - Retired the v1.3.2 review machinery: shop_to_llm_render_review_card(), shop_to_llm_review_request_notice(), shop_to_llm_day7_review_notice()/dismiss, the shop_to_llm_review_request_sent trigger inside shop_to_llm_log_search(), and the shop2llm_dismiss_review_card user-meta permanent dismissal (the AJAX action now records a 30-day cooldown site-wide)
+* Improvement - wp.org listing rewritten around search keywords (Phase 1 SEO): Plugin Name → "AI Visibility & LLMs.txt Generator — GEO, AEO & MCP for ChatGPT, Claude & Perplexity" (header + readme title), Tags → llms-txt / ai-visibility / mcp / chatgpt / schema, coexistence opener ("adds the AI layer Yoast and Rank Math don't cover"), three new description sections (51 named crawler invites grouped by vendor, four MCP tools with per-tool payloads, the three ways ChatGPT reads products incl. /product-feed.xml), and FAQ restructured to 8 keyword-phrase questions (WooCommerce MCP server, llms.txt generator, verify ChatGPT reads llms.txt, robots.txt AI crawler controls, ChatGPT product feed, AI visibility score, JSON-LD without SEO plugin, RankReady comparison) + 7 compliance questions with disclosures merged
+* Fix - Removed the U8 dark-mode stylesheet block (v1.3.5 legacy) from assets/css/admin.css: @media (prefers-color-scheme: dark) repainted .stl-card surfaces dark (#1e293b) and switched .stl-header h1 / .stl-tab-active text to near-white (#e2e8f0) while wp-admin itself stays light, producing dark cards on a white page and unreadable white-on-white active tab + "Shop2LLM" title for users with an OS-level dark theme. The admin UI now always renders the standard light theme regardless of OS color scheme
+
+2026-09-26 — version 1.5.5 (MCP Tool Surface: 4 Tools + AI Usage Policy)
+
+* New - MCP tool surface grows from 2 to 4 tools: get_policies (machine-readable returns/shipping/tax/terms/privacy pages with MerchantReturnPolicy JSON-LD that AI commerce agents can quote verbatim, reusing the v1.4.0 policy schema builders and shop2llm_policy_schema filter) and get_store_overview (first-call orientation: latest products and posts, categories, available tools and endpoints, 15-minute cache)
+* New - Opt-in AI usage policy in robots.txt — Training / Summarization / Attribution modes, off by default (Settings → Shop2LLM → AI Agents), emitted as a comment banner at the top of robots.txt via a priority-1 filter so it outruns other plugins' robots_txt hooks
+
+2026-09-26 — version 1.5.4 (Flywheel: Review Card on Default Landing Tab)
+
+* Improvement - Review request card moved from SEO → SEO Overview to the Dashboard Overview tab, directly below the Hero Test Search block (shop_to_llm_render_review_card() extracted as a shared renderer): the ★★★★★ ask now appears on the default landing surface where triggered users actually land, maximizing first-review capture for the new-install cohort
+* Fix - Hero Test Searches no longer inflate the "API Calls" metric / MCP score factor (separate shop_to_llm_self_count_{date} counter, displayed as "+N self-tests" in the AI Visibility Summary): "Each API call = an AI assistant connected" is now literally true
+* Removal - Google Feed factor deleted from the AI Visibility Score™ (9 → 8 factors) per user request: shop_to_llm_check_google_merchant() dropped, panel row and google_setup fix-action removed; weights rebalanced to keep /100 (robots/llms 18, schema/MCP 13, feed 12, queries/crawlers 8, policies 10)
+* Fix - Acquisition Funnel rebuilt as "Acquisition Channels": crawler visits, referral sessions and AI orders are presented as three independent channels instead of a sequential funnel (orders can arrive via agentic checkout (MCP/ACP) without a prior crawl or referral, which made 0→0→N look contradictory); unattributed orders (empty platform meta or the ACP adapter's literal "Unknown") now surface as "Unattributed"; per-channel captions + an explicit non-sequential note added
+* Fix - MCP product search returns exact-name matches even when the product is out of stock (get_posts title lookup pinned to the front of the results; stock filter is an availability preference, not an existence test — an assistant searching the full product title no longer wrongly concludes the product doesn't exist; in_stock in the payload reflects real availability)
+* Fix - AI Search Activity table no longer spams look-alike rows: identical searches (same query + result count) within the same minute are collapsed at log time
+* Feature - Physical llms.txt conflict detection: if another plugin writes a static llms.txt file that silently shadows Shop2LLM's dynamic endpoint (a physical file beats any rewrite), the admin shows a warning naming the likely source plugin with one-click Remove / Overwrite-with-Shop2LLM actions
+* Fix - /llms.txt, /agents.md and /llms-full.txt respond reliably even when another plugin registers the same rewrite patterns or hijacks .txt/.md requests: a URI-level fallback (shop_to_llm_output_llms_txt / shop_to_llm_protocol_uri_fallback) outruns plugin activation order
+* Fix - llms.txt / agents.md rewrite rules are registered before the activation-time flush, so the endpoints work immediately after activation instead of only after the next permalink flush
+* Fix - Shop2LLM admin notices no longer appear on other plugins' admin pages: global notices (onboarding banner, crawler/review/WooCommerce warnings) are restricted to the WP-native Dashboard and Plugins screens via shop_to_llm_is_global_notice_screen()
+* Improvement - AI Traffic tab de-duplicated: the Crawler Analytics widget card merged into the AI Crawler Activity card (7-day totals stay in the hero bar, which now fetches analytics once instead of twice; the three-point diagnostic checklist — robots.txt / llms.txt / content — replaces the stacked zero-data blocks when no crawls are logged); GA4 form moved to the Settings tab with a "Settings →" pointer on the AI-Driven Traffic card; "(v1.3.5+)" labels removed from the GA4 and Crawler Analytics headers; shop_to_llm_render_crawler_diagnostics() extracted as the shared diagnostic renderer
+* Improvement - "Website" pill button added next to the plugin page header title (Shop2LLM vX.Y.Z), linking to https://shop2llm.com in a new tab
+* Improvement - Onboarding banner competitor detection: when Yoast SEO (WPSEO_VERSION) or Rank Math (RANK_MATH_VERSION) is active, the banner leads with "We detected %s." plus a green one-click migration CTA ("Import from %s →") deep-linking to the SEO tab's import button (admin.php?page=shop2llm#tab-seo); the default discovery message with live crawler stats is preserved when no competitor is present — implements the "detect competitor → import" onboarding pattern used by the major SEO plugins
+
+2026-09-26 — version 1.5.3 (Standalone Release: WooCommerce Hard Dependency Removed)
+
+* Improvement - Removed `Requires Plugins: woocommerce` from the plugin header and renamed the plugin to "AI Visibility & LLMs.txt — Shop2LLM": the plugin now installs and activates on any WordPress site; WooCommerce remains an optional enhancement (shop_to_llm_has_woocommerce() detection + site_mode auto content/commerce already shipped, no option migration needed)
+* Improvement - readme.txt rewritten for standalone positioning: title de-suffixed, tags optimized to the 5-tag WordPress.org directory limit (ai-visibility, ai-seo, chatgpt, llms-txt, woocommerce — verified via the official readme validator, which ignores tags beyond 5), WooCommerce moved to optional in Requirements + FAQ + How It Works + Description
+* Feature - /ai-visibility/ verification page footer upgraded from a plain "Powered by" line to a prominent CTA card linking to the WordPress.org listing (viral loop: front-end badge → verification page → directory)
+* Feature - Review ask at the value-first moment: the one-time "AI can see your store" first_search success banner now includes a ★★★★★ rating link to wordpress.org/support/plugin/shop2llm/reviews
+* Dev - tests/shop_to_llm_structure_test.php: 'Requires WooCommerce' check replaced by standalone assertions (no Requires Plugins header, no "for WooCommerce" name suffix) plus a 1.5.3 version assertion
+
+2026-09-26 — version 1.5.2 (Admin IA: SEO Settings Relocated)
+
+* Feature - Real SEO settings moved into the SEO tab: a new "SEO Settings" sub-tab (default) hosts the 7 SEO module toggles, Title Separator, Homepage Title/Description, Title Templates and Google Search Console credentials, with a dedicated save handler (nonce shop_to_llm_seo_settings) — the main Settings form can no longer overwrite SEO options that are not present in its form
+* Improvement - Former "SEO Settings" sub-tab (the SEO/GSC dashboard) renamed "SEO Overview"; sub-tab order is now Settings / Overview / Redirects / Sitemap; legacy ?subtab=settings links keep working (they now show real settings, matching what notices like "Enable it under SEO Settings" promise)
+* Fix - tab-seo panel div now closes right after the sub-tab chain instead of only inside the dashboard branch (redirects/sitemap sub-tabs no longer leave the panel div unclosed)
+* Improvement - Settings tab telemetry option renamed "Analytics" → "Anonymous Usage Data" to remove the naming collision with the Analytics tab (option key shop_to_llm_analytics unchanged; no data or behavior change)
+* Dev - GSC help text updated to reference the SEO Overview sub-tab and the ?tab=seo&subtab=overview redirect URI
+
+2026-09-20 — version 1.5.1 (Activation Funnel Fix: 60s-to-Aha)
+
+* Fix - Activation onboarding completes: the first successful Hero Test Search writes welcome_completed (aha = onboarding done); first attempt may fail (cloud hiccup), a later success still completes — no dead end
+* Fix - Hero Test Search is now the FIRST block in the Dashboard tab (Value Card moved below) so the aha moment is above the fold; Value Card behavior (dismissible, re-shows on version update) unchanged
+* Feature - Hero query pre-filled server-side with the newest real product/post title (wpdb, WC-agnostic); activation auto-run executes it 1.5s after page load — zero typing to first AI answer
+* Fix - Activation auto-search never executed: JS referenced PHP variable heroHasWC (ReferenceError); now uses the pre-filled input value
+* Dev - test_search AJAX logs first_search authoritatively server-side (dedup in shop_to_llm_log_event) and returns first_success flag; JS renders a one-time "AI can see your store" banner on first success
+* Dev - Removed dead code shop_to_llm_render_welcome_modal() (uncalled since P0-1; was the only welcome_shown source); welcome_shown now fires on first Dashboard view post-activation
+* Dev - tests/unit/activation_aha_unit_test.php registered as Suite 8 (24 assertions: first_search semantics + source invariants)
+
+2026-09-20 — version 1.5.0 (Acquisition Layer: AI Referral → Order Attribution)
+
+* Feature - Acquisition Funnel card on the AI Traffic tab: AI crawler visits → AI referral sessions → AI-attributed orders → AI GMV (30-day window, 15-min cache, 100% local — nothing leaves the server)
+* Feature - AI order attribution bridge: AI referral sessions are remembered in the WooCommerce session with a first-party cookie fallback (source label only, 30-day TTL, no personal data); on checkout the order is stamped with _shop2llm_ai_order / _shop2llm_ai_platform meta — the same keys Pro's agentic checkout uses, so Pro's AI Revenue tab aggregates these orders automatically
+* Feature - AI source matching extended: chatgpt.com, claude.ai, gemini.google.com, grok.com, chat.deepseek.com added alongside the existing map (Perplexity, Copilot, Bing Chat, You.com, Brave, Phind, Kagi); matching logic extracted into a shared pure function used by referral logging AND order tagging
+* Dev - New includes/class-acquisition.php (attribution helpers + funnel aggregation + dashboard card); tests/unit/acquisition_unit_test.php (43 assertions) registered as Suite 6
+* Note - Per-platform revenue breakdown in the funnel card is a Pro feature (visible but locked)
+
+2026-09-20 — version 1.4.0 (Discovery Layer: Policies, Google Feed, Price/Stock Accuracy)
+
+* Feature - Policy pages become machine-readable: returns/shipping/tax/terms/privacy pages now emit JSON-LD (WebPage + MerchantReturnPolicy / OfferShippingDetails) so AI commerce agents (Claude Commerce Agent answers policy questions only) can quote shipping cost, return window and fees verbatim; slug-based page detection with 6h cache, invalidated on page save; filterable via shop2llm_policy_return_config / shop2llm_policy_schema
+* Feature - llms.txt gains a "## Store Policies" section listing detected policy pages (agents discover them without crawling)
+* Feature - Site AI Visibility Score grows 7 → 9 factors: Policies (10 pts) and Google Merchant Center feed health (10 pts, local-only checks — Google for WooCommerce detection + merchant connection, no external requests); existing weights rebalanced to keep /100 (robots/llms 15, schema/MCP 12, queries/crawlers 8)
+* Feature - Product AI Score grows 9 → 11 dimensions: Sale Price Consistency (sale ≥ regular = fake discount flag) and Stock Status Current (out-of-stock untouched 90+ days = stale listing; variable products require at least one purchasable in-stock variation); free tier max 55 → 70, Pro dims 8-11 reweighted (total stays 100)
+* Dev - New includes/class-policy-schema.php with pure, unit-tested builders; tests/unit/policy_schema_unit_test.php (56 assertions) registered as Suite 5
+* Note - Advanced offer-level enrichment (priceValidUntil, per-variant hasVariant nodes, review entities) remains a Pro feature
+
+2026-09-20 — version 1.3.14 (Detection Hardening & Listing Accuracy)
+
+* Fix - AI crawler detection now matches the most specific bot pattern first (longest-key-first): "Googlebot-Image/1.0" no longer misattributes to "Googlebot"; same fix applied to PerplexityBot-1, Applebot-Extended, Amazonbot-Image, Bytespider-Image; empty User-Agent short-circuits
+* Docs - Listing accuracy sweep: 2 MCP tools (not 23), 81 crawlers tracked (not 65), 51 robots.txt AI bot allow directives (not 12); dashboard/UCP check/empty-state copy now derive counts from the live registry instead of hardcoded numbers
+
+2026-09-20 — version 1.3.13 (Search Terms: GEO/AEO)
+
+* Docs - readme description now references GEO (Generative Engine Optimization) and AEO (Answer Engine Optimization) — covers the emerging query families merchants use for AI visibility services; no code changes
+
+2026-09-20 — version 1.3.12 (Docs Alignment — WooCommerce Required)
+
+* Docs - readme corrected: Shop2LLM requires WooCommerce 8.0+ (free) and PHP 8.1+; removed contradictory "works standalone / WooCommerce optional" claims left over from the v1.0.7 era (Requires Plugins: woocommerce header has been live since 1.3.9)
+* Docs - Requirements FAQ now states PHP 8.1+ (matches Requires PHP header, live since 2026-07-29) and WooCommerce required; How It Works now starts with installing WooCommerce
+
+2026-09-20 — version 1.3.11 (Activation & Value Proof)
+
+* UX - Onboarding wizard steps now show real completion states (green ✓): published content, ChatGPT connection, llms.txt/robots.txt readiness, and first AI activity — with a direct "Fix in AI Score card" link
+* UX - Hero Test Search results end with a value-closure footer ("this is what ChatGPT users see") and a one-click jump to the AI Score card
+* UX - AI Traffic empty state is now a 3-point diagnostic (robots.txt / llms.txt / published content) with inline fix actions instead of a dead-end message
+* Feature - AI Score 7-day trend: daily score snapshots (rolling 30 days, incremental) with an up/down delta badge on the dashboard
+* UX - Day-7 review fallback notice (or earlier on first score improvement) — permanent dismissal, no incentives; complements the existing first-crawler milestone review prompt
+
+2026-09-11 — version 1.3.10 (Product Schema Priority Fix)
+
+* Fix - Product schema is no longer replaced by meta-driven schema types (FAQ/HowTo) on product pages: the Product JSON-LD — the primary AI-crawler entity (offers.price, GTIN, rating) — is always emitted, with extra types added as additional blocks
+
+2026-09-07 — version 1.3.9 (AI Score Free-Tier Gating)
+
+* UX - AI Score auto-fix actions and dimension groups (Categories/Tags/Stock/Attributes, Content L2-L5, UCP Checkout Kit) gated behind Pro upgrade; free users see diagnosis + upgrade hooks with adjusted displays (e.g. /65)
+
+2026-07-26 — version 1.3.8 (SEO Sub-menu Consolidation)
+
+* UX - Merged `Redirects` and `Sitemap` sub-menus into the main `Shop2LLM → SEO` tab as sub-tabs
+* UX - WP admin sidebar now shows a single `Shop2LLM` entry instead of three
+* UX - Added `nav-tab` sub-navigation inside SEO tab (`SEO Settings` / `Redirects` / `Sitemap`)
+* Compat - Old URLs (`?page=shop2llm-seo-redirects`, `?page=shop2llm-seo-sitemap`) auto-redirect to new sub-tab locations
+
+2026-07-26 — version 1.3.7 (MCP Spec Compliance Fixes)
+
+* Fix - MCP `initialize` returns dynamic `protocolVersion` (echoes client-requested version, defaults to `2025-06-18`) instead of hardcoded `2025-11-25`
+* Fix - MCP `notifications/*` requests return HTTP 202 with empty body per MCP 2025-06-18 spec (previously returned `-32601 Method not found`)
+* Fix - MCP `tools/call` results wrapped in `content[] + structuredContent` structure per spec
+* Fix - Discovery manifest `mcp.version` synchronized to `2025-06-18`
+
+2026-07-07 — version 1.3.6 (6-Tab IA + PHP 7.4 Compat + CSS Fix)
+
+* Feature - 6-tab Dashboard layout (Overview, AI Agents, AI Traffic, SEO, Analytics, Settings) with UCP Score + MCP + /agents.md + 65 crawlers in AI Agents tab; crawler analytics + GA4 + AI search in AI Traffic tab
+* Fix - UCP Score gauge SVG displays at correct size (CSS selector fix) + PHP 7.4 compatibility (removed union return types, added str_contains polyfill)
+* Compliance - 0 Plugin Check ERROR, 0 Plugin Check WARNING maintained
+
+2026-07-07 — version 1.3.5 (GA4 + Crawler Analytics + CJK + UI Refresh + Zero WARNING)
+
+* Feature - GA4 AI Traffic Integration + AI Crawler Log Analytics (65 crawlers, opt-in) + CJK Content Optimizer (Chinese/Japanese/Korean N-gram analysis)
+* Feature - Dashboard visual refresh — UCP Score radial gauge (SVG), design token system, empty states, micro-interactions, mobile-responsive layout, dark mode
+* Fix - All Plugin Check warnings resolved to zero; security hardening (wp_safe_redirect, nonce verification)
+
+2026-07-07 — version 1.3.4 (UCP Readiness + /agents.md + Live Extractability + 65 AI Crawlers)
+
+* Feature - UCP Readiness Score (7 dimensions, 100 points) + /agents.md endpoint + /llms-full.txt alias — AI agents can assess and access your store
+* Feature - Live Content Extractability (10 dimensions) in Classic & Gutenberg editors + AI Crawler Registry expanded to 65 bots
+* Compliance - All i18n wrapped; no phone-home; no compensated reviews; WP.org Guideline 6 compliant
+
+2026-07-05 — version 1.3.3 (WP Guideline 7 Compliance & Bug Fix)
+
+* Privacy - Removed auto-ping on activation (WP Guideline 7); ping now only sent when user enables Analytics
+* Privacy - Removed auto product sync on activation (WP Guideline 7); added opt-in Product Sync consent (Settings → Shop2LLM → Product Sync), defaults to disabled
+* Feature - Added Restart Onboarding button (Settings → Shop2LLM → Onboarding) for users who skipped the wizard
+* Code Quality - Added explicit PHP/WP version compatibility check on activation (prevents fatal errors on incompatible environments)
+* Performance - Cached uninstall confirmation DB queries in transient (reduces plugins.php page load overhead)
+* UI - Onboarding banner no longer shows on the plugin's own page (reduces notification clutter)
+* Bugfix - Fixed 'heroRemaining' JS ReferenceError on activation (props WP.org Plugin Tests)
+
+2026-07-02 — version 1.1.2 (Plugin Check Compliance — Zero ERROR, Zero WARNING)
+
+* Compliance - Fixed all 428 Plugin Check ERRORs: 425 TextDomainMismatch, 2 OutputNotEscaped, 1 parse_url
+* Compliance - Fixed all 170 Plugin Check WARNINGs: 153 DB query (DirectQuery/NoCaching/PreparedSQL/UnescapedDBParameter/SchemaChange), 12 NonPrefixedVariable, 2 NonceVerification, 2 NonPrefixedHookname, 1 error_log
+* Compliance - Plugin Check now reports 0 ERROR + 0 WARNING (clean pass)
+* i18n - Text domain unified from 'shop2llm' to 'shop-to-llm' across 425 i18n function calls (__(), _e(), esc_html__(), esc_attr__(), etc.)
+* i18n - Plugin header Text Domain updated: shop2llm → shop-to-llm
+* i18n - load_textdomain() call updated to use 'shop-to-llm'
+* i18n - Translation file path pattern updated: /languages/shop2llm-{locale}.mo → /languages/shop-to-llm-{locale}.mo
+* i18n - 28 translation files renamed: shop2llm-{locale}.po/mo → shop-to-llm-{locale}.po/mo (14 languages × 2 files)
+* i18n - .pot template file renamed: shop2llm.pot → shop-to-llm.pot; X-Domain header updated
+* Security - class-citation-widget.php L52: $citedCount now wrapped with esc_html() before output
+* Security - class-citation-widget.php L53: $totalChecks now wrapped with esc_html() before output
+* Compatibility - class-citation-widget.php L23: parse_url() replaced with wp_parse_url() (WordPress compatibility function)
+* WP.org - Text domain now matches plugin directory name (shop-to-llm), enabling translate.wordpress.org community translations
+* Backward compat - Menu slug 'shop2llm' kept unchanged (changing would break existing admin URLs)
+* Backward compat - JS object name 'shop2llm' in wp_localize_script kept unchanged (changing would break frontend JS)
+* Backward compat - All option names, transient keys, cron hooks, table names with 'shop2llm_' prefix kept unchanged
+
+2026-07-02 — version 1.1.1 (Hero Test Search — ChatGPT-style Aha Moment)
+
+* UX - Hero Test Search box at top of Dashboard: prominent yellow gradient card with input + "Ask ChatGPT →" button
+* AI - FinCore cloud LLM proxy (api.shop2llm.com/fincore/v1/free/ai-test) generates natural-language reply using user's local search results; no API key required from user
+* AI - 5 free tests per day per site; server-side quota enforcement (site_hash based), local transient counter is UI hint only
+* AI - Graceful degradation: 429 returns localized quota-exhausted message; other errors return empty string (UI falls back to plain product list)
+* AI - Lightweight payload: only name/price/currency/in_stock/rating sent to cloud (no images, no full descriptions); query truncated to 200 chars, product names to 120 chars
+* UI - Rich product cards: 48x48 thumbnail (with 📦 placeholder fallback), currency-aware price, ● In Stock / Out of Stock badge, ★ rating, short description (truncated to 120 chars), "View →" link
+* UI - Quota badge top-right: "N tests left today", updates in real time after each call; turns red when 0
+* UI - Loading spinner + "Asking ChatGPT about your store..." message during cloud call (15s timeout)
+* UX - Score-card "Test Search" button (stl-test-search-btn) now scrolls to Hero box and focuses input (replaces hidden inline panel #stl-test-search-box which has been removed)
+* UX - "Fix All" button's test_mcp action now calls window.shop2llmFocusHeroSearch() instead of clicking the old inline button
+* i18n - All new strings translation-ready: "See how ChatGPT sees your store", "Ask ChatGPT", "ChatGPT-style preview", "tests left today", "matching items found", "In Stock", "Out of Stock", "View", "Powered by FinCore cloud · 5 free tests per day · No API key needed", etc.
+* Filter - shop2llm_test_search_daily_limit (default 5) allows programmatic override of local UI hint quota
+* Backward compat - Existing AJAX action shop2llm_test_search kept; response shape extended with ai_reply, remaining_quota, daily_limit fields (products field unchanged, only enriched with currency/rating/short_description/url/image_url)
+
+2026-06-25 — version 1.1.0 (MCP Infrastructure Release)
+
+* MCP - SaaS MCP server (mcp-mini-handler.php): cross-store search_products, get_product, trending_products
+* MCP - 2 prompts: shopping_assistant + price_comparison for LLM training
+* MCP - 7-platform UA detection: ChatGPT, Claude, Gemini, Copilot, Perplexity, Meta, Google
+* MCP - Discovery page at /mcp with setup guide and live stats
+* MCP - Grafana monitoring (8 panels) + exposure tracking (fc_mcp_search_exposure)
+* Index - fc_product_index: server-side tier detection via license lookup
+* Index - cron-pull-product-feeds.php: daily pull from store /product-feed.xml
+* Index - seed-stores-from-json.php: import 4238 benchmark domains as seed stores
+* Revenue - UTM attribution: search → click → order chain (utm_source=shop2llm)
+* Revenue - fc_store_revenue: aggregated GMV per store/month, synced via heartbeat
+* Revenue - _shop2llm_ai_order meta on UTM/session-detected orders for dashboard
+* Plugin - Feed sync on activation + daily cron, independent of analytics opt-in
+* Plugin - shop2llm_disable_product_sync filter for opt-out (WP.org compliance)
+* Pro/Ultra - Revenue snapshot included in daily product feed sync
+* Pro/Ultra - AI order attribution for dashboard revenue display
+* Readme - WP.org compliance: full data disclosure, layered privacy model update
+* Docs - Technical architecture document (docs/mcp-technical-architecture.md)
+
+2026-06-24 — version 1.0.9
+
+* Analytics - Cloud heartbeat weekly → daily
+* UX - Welcome Modal simplified to single card with opt-in
+* UX - Welcome Modal shows plugin icon instead of checkmark
+
+2026-06-23 — version 1.0.8
+
+* Trust - Queries & Crawlers scores now fully open in free tier with real calculation (Focus Query coverage ratio + 30-day AI crawler activity), freeMax restored to 100
+* Trust - Removed all anchoring-effect copy: "Free tier max: 80/100", "Free max: 80/100 · Pro +20", 🔒 icons, PRO badges on score rows
+* Trust - "Fix All Items" button now transparent: shows "Auto-fixed X · Y need manual action", highlights manual items in yellow with scroll-to positioning
+* Security - MCP search now restricts post_type to post/page and excludes password-protected content (has_password => false)
+* UX - Reduced CTA density: removed Pro upsell from search analytics notice, connection guide pitch, and plugin list action link
+* Compliance - Removed class_exists('Shop2LLM_Pro_Visibility_Score') conditional; free version behavior no longer varies based on Pro presence
+* UX - First-Run Welcome Modal: full-screen 3-step overlay after activation (Copy AI URL → Test search your own content → Add to ChatGPT). Inline test search delivers the "Aha moment" without leaving WordPress
+* Bugfix - Test search handler now correctly iterates $results['products'] instead of $results wrapper array (was returning "Unknown" for all results)
+* Retention - First AI crawler visit now triggers wp_mail() to admin (Day 1-7 retention hook — brings users back even when not logged in)
+* Retention - Aha-moment review request: Welcome Modal shows ★★★★★ rating link immediately after first successful inline search (localStorage-gated, shows once)
+* Marketing - readme.txt free version description reframed from limitation ("supports ChatGPT with 2 tools") to value ("searchable + 12 crawlers + visibility score + no limits")
+* Analytics - Layered privacy model: Layer 1 local behavior summary (shop2llm_behavior_summary option, no opt-in needed, never leaves server); Layer 2 opt-in anonymous bucketed summary uploaded via monthly heartbeat; Layer 3 opt-in AI crawler visit reports
+* Analytics - New shop_to_llm_log_event() core function + shop2llm_log_event / shop2llm_enable_analytics AJAX handlers (nonce-verified, capability-checked)
+* Analytics - Welcome Modal JS now fires AJAX events: welcome_shown, welcome_completed, welcome_skipped (with step), url_copied, first_search (with success flag)
+* Analytics - Opt-in card shown after Welcome Modal completion ("Help us improve Shop2LLM" — Yes/Not now), defaults to off, toggleable in Settings
+* Privacy - All behavior summary fields bucketed or boolean to prevent fingerprinting: content_count (0/1-4/5-20/21-100/100+), dashboard_visits (1/2-5/6+); no PII, no IP, no email, no exact counts
+* Privacy - readme.txt FAQ rewritten with full layered data disclosure listing every collected field and opt-in mechanism
+
+2026-06-21 — version 1.0.6
+
+* Feature - Works without WooCommerce — supports any WordPress site (content search via posts/pages)
+* Feature - BlogPosting JSON-LD schema on single posts when WooCommerce absent
+* Feature - Content search via MCP tools using WordPress posts/pages fallback
+* Feature - llms.txt shows site posts when WooCommerce absent
+* Fix - Removed fatal wp_die() on activation without WooCommerce — replaced with dismissible admin notice
+* Fix - Graceful degradation for all WooCommerce-dependent features (product feed, AI score, quality checks)
+* Fix - Unified domain to shop2llm.com across all links (action links, API calls, Pro CTAs)
+* Update - Plugin description and readme now mention standalone WordPress support
+
+2026-06-21 — version 1.0.6
+
+* Compatibility - Lowered PHP requirement from 8.1 to 7.4 (replaced match expressions with switch, added str_starts_with polyfill)
+
+2026-06-17 — version 1.0.6
+
+* Performance - Dashboard load time 80x faster (5s → 62ms) — 7 transient reads merged to 1, blocking HTTP removed
+* Performance - Community stats load async via JS REST fetch (non-blocking)
+* Performance - Removed duplicate get_recent_searches() call
+* Performance - Replaced wc_get_products(5) with lightweight EXISTS SQL for peer comparison
+* Performance - Crawler detection moved from parse_request → wp hook (frontend only, admin/AJAX/REST exclude)
+* Performance - Crawler report: non-blocking HTTP, 1s timeout, circuit breaker (backoff on 4+ failures)
+* Performance - MCP counter writes batched (15s lock window, no race conditions under concurrency)
+* Performance - MCP rate limit: 60 req/min, returns 429 for excess
+* Performance - llms.txt cached (1h), invalidated on product save — eliminates 100 WC_Product OOM risk
+* Performance - Product quality check cached (1h) — avoids large postmeta JOIN on every dashboard load
+* Performance - Community stats endpoint: shutdown-deferred fetch, concurrent-fetch lock
+* Security - Unauthenticated endpoints serve from cache only, no HTTP call on request
+* Fix - 20 concurrent admin page < 300ms, 30 concurrent MCP < 230ms under stress test
+
+2026-06-15 — version 1.0.5
+
+* Conversion - AI Growth Progress card with 5-step milestone tracker + progress bar
+* Conversion - Peer Comparison card (Your Score vs Avg Free vs Pro Users)
+* Conversion - Smart Dynamic CTA: 3-tier messaging based on crawler/search activity
+* Conversion - 4 Achievement Badges (Store Live / AI Discovered / First Search / Power User)
+* Conversion - Greyed-out Pro-only platform cards with hover tooltip
+* Conversion - Inline Pro upgrade links in every dashboard card (17 CTAs total, unified color)
+* Conversion - Feature adoption nudge for first-time visitors
+* Conversion - Community social proof bar (weekly download stats from cloud)
+* Conversion - Review request trigger on first crawler + first search milestone
+* Conversion - Always-visible 5-star review prompt in dashboard header
+* Fix - Domain update: aiproductscout.shop → shop2llm.com for all Pro landing links
+* Fix - PHP warnings: undefined $crawlerCount / $searchCount in AI Growth Progress
+* Backend - New /v1/stats public endpoint for community stats
+* Backend - Fixed /v1/free/ping route (was missing)
+* Fixed - PostgreSQL compatibility (AUTO_INCREMENT → SERIAL, ENGINE → removed, inline INDEX → CREATE INDEX)
+* UI - Unified Pro CTA color to indigo #6366f1 across all cards
+* UI - Wizard progress bar with step counter (2/4 style)
+
+2026-06-14 — version 1.0.4
+
+* Privacy - Anonymous activation ping with SHA256-hashed site identifier (replaces plain site_url)
+* Feature - Monthly cloud heartbeat ping to distinguish active vs inactive installs
+* Privacy - Removed site_name from telemetry; only hashed hostname sent
+* Endpoint - Migrated from /v1/free/register to /v1/free/ping
+
+2026-06-07 - version 1.0.2
+
+* Added - HPOS (High Performance Order Storage) compatibility
+* Added - WooCommerce Marketplace support
+* Fixed - Remove invalid contributor
+
+2026-06-04 - version 1.0.1
+
+* Fixed - permission_callback granting access when API key is empty
+* Fixed - Settings save clearing API key from missing form field
+* Fixed - Author URI and readme URLs
+* Fixed - Add wp_unslash before sanitize_text_field on POST inputs
+* Fixed - Proper escaping for dynamic HTML attributes and display values
+* Removed - load_plugin_textdomain (WP 4.6+ auto-loads)
+* Update - Tested up to 7.0
+
+2026-05-29 - version 1.0.0
+
+* Initial release
