@@ -13,8 +13,9 @@
  * Plugin Name: AI Visibility & LLMs.txt Generator — GEO, AEO & MCP for ChatGPT, Claude, Gemini & Perplexity
  * Plugin URI:  https://shop2llm.com/
  * Description: AI Search Visibility & GEO for WordPress — make your site discoverable by ChatGPT, Claude, Gemini, Perplexity & AI search engines. AI visibility score, llms.txt, MCP server, AI crawler tracking, and AI SEO schema in 2 clicks.
- * Version: 1.10.1
+ * Version: 1.15.1
  * Author:      FinCore
+ * Update URI: https://api.shop2llm.com/fincore/v1/free-plugin/info
  * Author URI:  https://shop2llm.com/
  * License:     GPL-2.0+
  * License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -34,7 +35,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-define('SHOP_TO_LLM_VERSION', '1.10.1');
+define('SHOP_TO_LLM_VERSION', '1.15.1');
 define('SHOP_TO_LLM_DIR', plugin_dir_path(__FILE__));
 define('SHOP_TO_LLM_URL', plugin_dir_url(__FILE__));
 
@@ -233,6 +234,14 @@ function shop_to_llm_activate(): void
         wp_schedule_event(time(), 'weekly', 'shop2llm_weekly_snapshot');
     }
 
+    // v1.13.0: Weekly AI mention monitoring — runs for Pro stores with a
+    // configured OpenRouter BYOK key. Scheduling is always set up (activation
+    // hook) but shop_to_llm_mention_job() bails out early if Pro/BYOK/queries
+    // are missing, so it's safe on all installs.
+    if (!wp_next_scheduled('shop2llm_weekly_mention_monitor')) {
+        wp_schedule_event(time() + DAY_IN_SECONDS, 'weekly', 'shop2llm_weekly_mention_monitor');
+    }
+
     // Redirect to dashboard after activation
     add_option('shop_to_llm_do_activation_redirect', true);
 }
@@ -380,8 +389,15 @@ add_action('wp_ajax_shop2llm_log_event', 'shop_to_llm_handle_log_event');
 add_action('wp_ajax_shop2llm_add_focus_idea', 'shop_to_llm_handle_add_focus_idea');
 add_action('wp_ajax_shop2llm_enable_analytics', 'shop_to_llm_handle_enable_analytics');
 add_action('wp_ajax_shop2llm_asset_tool', 'shop_to_llm_handle_asset_tool');
+
+// v1.13.0: AI Mention Monitoring — weekly cron + on-demand AJAX
+add_action('shop2llm_weekly_mention_monitor', 'shop_to_llm_mention_job_cron');
+add_action('wp_ajax_shop2llm_run_mention_monitor', 'shop_to_llm_handle_run_mention_monitor');
 add_filter('plugin_action_links_' . plugin_basename(__FILE__), 'shop_to_llm_add_action_links');
 add_action('wp_head', 'shop_to_llm_inject_product_schema');
+// v1.11.0: <link rel="alternate" type="text/markdown"> — explicit Markdown
+// discovery for AI crawlers that don't support Accept-header negotiation.
+add_action('wp_head', 'shop_to_llm_markdown_rel_alternate', 6);
 add_action('init', 'shop_to_llm_generate_llms_txt');
 add_action('shop2llm_cleanup_crawler_logs', 'shop_to_llm_cleanup_old_crawler_logs');
 add_filter('query_vars', 'shop_to_llm_llms_txt_query_var');
@@ -1149,8 +1165,60 @@ function shop_to_llm_local_aha_preview(): array
  * @param array  $products  Local search results (already formatted)
  * @return string  AI-generated reply (empty string on failure)
  */
+
+// ─── v1.12.0: API Key Encryption Helpers ────────────────────────────────
+// OpenRouter / Perplexity keys stored in wp_options via openssl_encrypt with
+// AES-256-CBC. IV + ciphertext are base64-encoded together so decrypt can
+// split them. Master key is derived from wp_salt('auth') + a per-site hash
+// so plain reading of wp_options never reveals usable credentials.
+
+function shop_to_llm_encrypt_value(string $plaintext): string
+{
+    if ($plaintext === '' || !function_exists('openssl_encrypt')) {
+        return '';
+    }
+    $cipher = 'AES-256-CBC';
+    $key = hash('sha256', wp_salt('auth') . get_site_url(), true);
+    $iv = openssl_random_pseudo_bytes(openssl_cipher_iv_length($cipher));
+    $encrypted = openssl_encrypt($plaintext, $cipher, $key, OPENSSL_RAW_DATA, $iv);
+    if ($encrypted === false) {
+        return '';
+    }
+    // Store IV + ciphertext as base64 blob
+    return base64_encode($iv . $encrypted);
+}
+
+function shop_to_llm_decrypt_value(string $stored): string
+{
+    if ($stored === '' || !function_exists('openssl_decrypt')) {
+        return '';
+    }
+    $decoded = base64_decode($stored, true);
+    if ($decoded === false) {
+        return '';
+    }
+    $cipher = 'AES-256-CBC';
+    $ivLen = openssl_cipher_iv_length($cipher);
+    if (strlen($decoded) < $ivLen + 1) {
+        return '';
+    }
+    $iv = substr($decoded, 0, $ivLen);
+    $ciphertext = substr($decoded, $ivLen);
+    $key = hash('sha256', wp_salt('auth') . get_site_url(), true);
+    $decrypted = openssl_decrypt($ciphertext, $cipher, $key, OPENSSL_RAW_DATA, $iv);
+    return is_string($decrypted) ? $decrypted : '';
+}
+
 function shop_to_llm_generate_ai_test_reply(string $query, array $products): string
 {
+    // v1.12.0: Bring-Your-Own-Key path — if admin configured an OpenRouter
+    // key, call OpenRouter directly (user's API credits, unlimited). Otherwise
+    // fall back to the Shop2LLM free proxy (5/day per site quota).
+    $openrouterKey = shop_to_llm_decrypt_value((string) get_option('shop_to_llm_openrouter_key', ''));
+    if ($openrouterKey !== '') {
+        return shop_to_llm_generate_ai_test_reply_via_openrouter($query, $products, $openrouterKey);
+    }
+
     $site_url = get_site_url();
     $site_hash = hash('sha256', wp_parse_url($site_url, PHP_URL_HOST) ?: $site_url);
 
@@ -1201,6 +1269,87 @@ function shop_to_llm_generate_ai_test_reply(string $query, array $products): str
     // Sanitize but preserve line breaks and basic formatting
     $reply = sanitize_textarea_field($body['ai_reply']);
     return trim($reply);
+}
+
+/**
+ * v1.12.0: OpenRouter Bring-Your-Own-Key path for Hero Test Search.
+ *
+ * Calls openrouter.ai directly with the user's configured API key. The site
+ * owner pays only OpenRouter's normal rate (Shop2LLM never proxies or marks
+ * up these calls). Model defaults to openrouter/quasar-alpha (free tier) so
+ * Free users with a BYOK can still test without spending credits.
+ *
+ * Follows OpenRouter's chat-completions API shape and includes HTTP-Referer
+ * and X-Title per OpenRouter attribution guidelines.
+ *
+ * @param string $query  User's search query (already sanitized)
+ * @param array  $products  Local search results (already formatted)
+ * @param string $apiKey  OpenRouter API key (already decrypted)
+ * @return string  AI-generated reply (empty string on failure)
+ */
+function shop_to_llm_generate_ai_test_reply_via_openrouter(string $query, array $products, string $apiKey): string
+{
+    $siteUrl = get_site_url();
+    $siteName = get_bloginfo('name');
+
+    $productSummary = array_map(static fn (array $p): array => [
+        'name' => mb_substr((string) ($p['name'] ?? ''), 0, 120),
+        'price' => (string) ($p['price'] ?? ''),
+        'currency' => (string) ($p['currency'] ?? ''),
+        'in_stock' => !empty($p['in_stock']),
+    ], array_slice($products, 0, 10));
+
+    $payload = [
+        'model' => 'openrouter/quasar-alpha',
+        'messages' => [
+            [
+                'role' => 'system',
+                'content' => 'You are a helpful shopping assistant. Answer the user\'s query using only the product data provided. Be concise (under 200 words). If no products match, say so clearly and suggest alternatives.',
+            ],
+            [
+                'role' => 'user',
+                'content' => sprintf(
+                    "Query: %s\n\nAvailable products:\n%s\n\nRespond like a natural shopping assistant for the site '%s'.",
+                    $query,
+                    wp_json_encode($productSummary, JSON_UNESCAPED_UNICODE),
+                    $siteName
+                ),
+            ],
+        ],
+        'temperature' => 0.3,
+    ];
+
+    $response = wp_remote_post('https://openrouter.ai/api/v1/chat/completions', [
+        'timeout' => 20,
+        'headers' => [
+            'Authorization' => 'Bearer ' . $apiKey,
+            'Content-Type' => 'application/json',
+            'HTTP-Referer' => $siteUrl,
+            'X-Title' => $siteName,
+        ],
+        'body' => wp_json_encode($payload),
+    ]);
+
+    if (is_wp_error($response)) {
+        return '';
+    }
+
+    $code = wp_remote_retrieve_response_code($response);
+    if ($code !== 200) {
+        // Surface auth failures as actionable guidance (shop owner sees this)
+        if ($code === 401 || $code === 403) {
+            return 'OpenRouter API key rejected. Check Settings → AI Provider Keys to update it.';
+        }
+        return '';
+    }
+
+    $body = json_decode(wp_remote_retrieve_body($response), true);
+    $content = $body['choices'][0]['message']['content'] ?? '';
+    if (!is_string($content) || $content === '') {
+        return '';
+    }
+
+    return trim(sanitize_textarea_field($content));
 }
 
 /**
@@ -1509,6 +1658,17 @@ function shop_to_llm_render_settings(): void
         update_option('shop_to_llm_show_badge', $showBadge);
         $entityChecks = isset($_POST['shop_to_llm_enable_entity_checks']) ? 1 : 0;
         update_option('shop_to_llm_enable_entity_checks', $entityChecks);
+        // v1.12.0: OpenRouter API key — encrypted at rest via AES-256-CBC.
+        // Empty submission clears the stored key (admin wants to remove it).
+        $orKeyRaw = sanitize_text_field(wp_unslash($_POST['shop_to_llm_openrouter_key'] ?? ''));
+        if ($orKeyRaw === '') {
+            delete_option('shop_to_llm_openrouter_key');
+        } else {
+            $encrypted = shop_to_llm_encrypt_value($orKeyRaw);
+            if ($encrypted !== '') {
+                update_option('shop_to_llm_openrouter_key', $encrypted, false); // autoload = false
+            }
+        }
         // v1.5.2: SEO toggles/templates/GSC now saved by shop_to_llm_seo_save handler (SEO tab).
         if ($wasAnalyticsEnabled !== 'yes' && $analytics === 'yes') {
             $site_url = get_site_url();
@@ -2318,6 +2478,85 @@ function shop_to_llm_render_settings(): void
                 <?php echo esc_html__('All fixes above are free and one-click.', 'shop2llm'); ?>
                 <a href="<?php echo esc_url($proUpgradeUrl); ?>" style="color:#6366f1;text-decoration:none;font-weight:600">Shop2LLM Pro →</a>
             </div>
+            <?php endif; ?>
+        </div>
+
+        <?php // v1.15.0: Per-Page Content Quality Drill-Down card — Pro. ?>
+        <?php $isProContent = shop_to_llm_is_pro();
+              $sampleSize = (int) get_option('shop_to_llm_content_audit_sample_size', 25);
+              $contentAudit = $isProContent ? shop_to_llm_get_content_audit_sample($sampleSize) : ['overall' => 0, 'items' => []];
+              $overallScore = (int) ($contentAudit['overall'] ?? 0);
+              $auditItems = $contentAudit['items'] ?? [];
+              $auditCount = count($auditItems);
+        ?>
+        <div class="stl-card" id="stl-content-drilldown" style="border-left:4px solid #0ea5e9">
+            <h2 style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
+                <svg viewBox="0 0 24 24" fill="none" stroke="#0ea5e9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                <?php echo esc_html__('Per-Page Content Quality', 'shop2llm'); ?>
+                <span class="stl-badge stl-badge-pro"><?php echo esc_html__('Pro', 'shop2llm'); ?></span>
+                <span class="s2ll-help" title="<?php echo esc_attr__('Sample your pages, posts and products. Five on-page checks per URL: title length, meta description, H1 count, image alt coverage and Open Graph tags.', 'shop2llm'); ?>"></span>
+                <button type="button" id="stl-content-resample" style="margin-left:auto;padding:4px 12px;background:#0ea5e9;color:#fff;border:none;border-radius:4px;font-size:12px;font-weight:600;cursor:pointer"><?php echo esc_html__('Re-Sample Now', 'shop2llm'); ?></button>
+            </h2>
+            <?php if (!$isProContent) : ?>
+                <p style="color:#64748b;font-size:13px;margin:0;line-height:1.6">
+                    <?php echo esc_html__('Audit every page on five on-page content checks: title length, meta description, H1 count, image alt coverage and Open Graph tags. Per-page scores with fix guidance.', 'shop2llm'); ?>
+                    <a href="<?php echo esc_url(admin_url('admin.php?page=shop2llm-pro')); ?>" style="color:#0ea5e9;font-weight:600;text-decoration:underline"><?php echo esc_html__('Upgrade to Pro →', 'shop2llm'); ?></a>
+                </p>
+            <?php elseif ($auditCount === 0) : ?>
+                <p style="color:#64748b;font-size:13px;margin:0;line-height:1.6">
+                    <?php echo esc_html__('No published pages, posts or products yet.', 'shop2llm'); ?>
+                </p>
+            <?php else : ?>
+                <!-- Overall score + sample size selector -->
+                <div style="display:flex;align-items:center;gap:16px;padding:12px 16px;background:#f1f5f9;border-radius:8px;margin-bottom:12px">
+                    <div style="font-size:28px;font-weight:700;color:#1e293b"><?php echo esc_html((string) $overallScore); ?><span style="font-size:14px;color:#64748b">/100</span></div>
+                    <div style="flex:1">
+                        <div style="font-size:12px;font-weight:600;color:#475569"><?php echo esc_html__('Average content quality across', 'shop2llm'); ?> <?php echo esc_html((string) $auditCount); ?> <?php echo esc_html__('pages', 'shop2llm'); ?></div>
+                        <div style="display:flex;align-items:center;gap:6px;margin-top:4px">
+                            <span style="font-size:11px;color:#94a3b8"><?php echo esc_html__('Sample size:', 'shop2llm'); ?></span>
+                            <select id="stl-content-sample-size" style="padding:2px 6px;font-size:11px;border:1px solid #e2e8f0;border-radius:3px">
+                                <option value="10" <?php selected($sampleSize, 10); ?>>10</option>
+                                <option value="25" <?php selected($sampleSize, 25); ?>>25</option>
+                                <option value="50" <?php selected($sampleSize, 50); ?>>50</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <!-- Per-page table -->
+                <table style="width:100%;border-collapse:collapse;font-size:12px">
+                    <thead>
+                        <tr style="color:#94a3b8;font-size:10px;text-transform:uppercase;letter-spacing:0.04em">
+                            <th style="text-align:left;padding:6px 4px"><?php echo esc_html__('Page', 'shop2llm'); ?></th>
+                            <th style="text-align:center;padding:6px 2px" title="<?php echo esc_attr__('Title length', 'shop2llm'); ?>">T</th>
+                            <th style="text-align:center;padding:6px 2px" title="<?php echo esc_attr__('Meta desc', 'shop2llm'); ?>">M</th>
+                            <th style="text-align:center;padding:6px 2px" title="<?php echo esc_attr__('H1 count', 'shop2llm'); ?>">H1</th>
+                            <th style="text-align:center;padding:6px 2px" title="<?php echo esc_attr__('Image alt ratio', 'shop2llm'); ?>">Alt</th>
+                            <th style="text-align:center;padding:6px 2px" title="<?php echo esc_attr__('OG tags', 'shop2llm'); ?>">OG</th>
+                            <th style="text-align:right;padding:6px 4px"><?php echo esc_html__('Score', 'shop2llm'); ?></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($auditItems as $item) :
+                            $pageScore = (int) ($item['total'] ?? 0);
+                            $scoreBg = $pageScore >= 80 ? '#dcfce7' : ($pageScore >= 50 ? '#fef9c3' : '#fee2e2');
+                            $scoreFg = $pageScore >= 80 ? '#15803d' : ($pageScore >= 50 ? '#a16207' : '#b91c1c');
+                        ?>
+                            <tr style="border-bottom:1px solid #f1f5f9">
+                                <td style="padding:6px 4px">
+                                    <a href="<?php echo esc_url($item['permalink'] ?? '#'); ?>" target="_blank" rel="noopener" style="color:#1e293b;text-decoration:none;font-weight:500"><?php echo esc_html($item['page'] ?? ''); ?></a>
+                                </td>
+                                <td style="padding:6px 2px;text-align:center;color:<?php echo esc_attr(((int)($item['title_len'] ?? 0) >= 40 && (int)($item['title_len'] ?? 0) <= 70) ? '#15803d' : '#b91c1c'); ?>"><?php echo esc_html((string) ($item['title_len'] ?? 0)); ?></td>
+                                <td style="padding:6px 2px;text-align:center;color:<?php echo esc_attr(((int)($item['meta_desc_len'] ?? 0) >= 80 && (int)($item['meta_desc_len'] ?? 0) <= 200) ? '#15803d' : '#b91c1c'); ?>"><?php echo esc_html((string) ($item['meta_desc_len'] ?? 0)); ?></td>
+                                <td style="padding:6px 2px;text-align:center;color:<?php echo esc_attr(((int)($item['h1_count'] ?? 0) === 1) ? '#15803d' : '#b91c1c'); ?>"><?php echo esc_html((string) ($item['h1_count'] ?? 0)); ?></td>
+                                <td style="padding:6px 2px;text-align:center;color:<?php echo esc_attr(((float)($item['img_alt_ratio'] ?? 0) >= 0.8) ? '#15803d' : '#b91c1c'); ?>"><?php echo esc_html((string) round(($item['img_alt_ratio'] ?? 0) * 100)); ?>%</td>
+                                <td style="padding:6px 2px;text-align:center"><?php echo ($item['og_present'] ?? false) ? '<span style="color:#15803d">✓</span>' : '<span style="color:#b91c1c">✗</span>'; ?></td>
+                                <td style="padding:6px 4px;text-align:right">
+                                    <span style="display:inline-block;padding:2px 8px;background:<?php echo esc_attr($scoreBg); ?>;color:<?php echo esc_attr($scoreFg); ?>;border-radius:10px;font-weight:700;font-size:11px"><?php echo esc_html((string) $pageScore); ?></span>
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
             <?php endif; ?>
         </div>
 
@@ -3449,6 +3688,77 @@ function shop_to_llm_render_settings(): void
             </div>
             <?php endif; ?>
             <p class="s2ll-suggestion"><?php echo wp_kses(shop_to_llm_icon('lightbulb'), shop_to_llm_allowed_svg()); ?> <?php echo esc_html__('Use these search terms to improve your content and Focus Queries', 'shop2llm'); ?></p>
+
+            <?php // v1.14.0: AI Search Intent Analysis — Pro depth, Free baseline. ?>
+            <?php if ($trafficSearchCount >= 3) : ?>
+            <?php
+                $isProLocal = shop_to_llm_is_pro();
+                $bucketLabels = [
+                    'product_search'   => ['Product Search', '#0ea5e9'],
+                    'category_browse'  => ['Category Browse', '#8b5cf6'],
+                    'price_filter'     => ['Price Filter', '#f59e0b'],
+                    'attribute_filter' => ['Attribute Filter', '#10b981'],
+                ];
+                $bucketCounts = ['product_search' => 0, 'category_browse' => 0, 'price_filter' => 0, 'attribute_filter' => 0];
+                $zeroResults = [];
+                foreach ($trafficSearches as $s) {
+                    $query = sanitize_text_field((string) ($s['query'] ?? ''));
+                    if ($query === '') { continue; }
+                    $intent = shop_to_llm_classify_search_intent($query);
+                    $bucket = $intent['bucket'] ?? 'product_search';
+                    if (isset($bucketCounts[$bucket])) { $bucketCounts[$bucket]++; }
+                    if ((int) ($s['results'] ?? 0) === 0 && $isProLocal) {
+                        $zeroResults[] = ['query' => $query, 'reason' => shop_to_llm_zero_result_reason($query)];
+                    }
+                }
+                $total = array_sum($bucketCounts);
+            ?>
+            <div id="stl-intent-insights" style="margin-top:14px;padding:12px 14px;background:#fafafa;border:1px solid #e2e8f0;border-radius:8px">
+                <div style="display:flex;align-items:center;gap:6px;font-weight:600;font-size:12px;color:#334155;margin-bottom:10px;text-transform:uppercase;letter-spacing:0.04em">
+                    <?php echo esc_html__('Search Intent Insights', 'shop2llm'); ?>
+                    <?php if (!$isProLocal) : ?>
+                        <span class="stl-badge stl-badge-pro"><?php echo esc_html__('Pro', 'shop2llm'); ?></span>
+                    <?php endif; ?>
+                </div>
+                <?php if ($isProLocal) : ?>
+                    <!-- Intent distribution bars -->
+                    <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:12px">
+                        <?php foreach ($bucketCounts as $bucket => $count) :
+                            $pct = $total > 0 ? round(($count / $total) * 100) : 0;
+                            $label = $bucketLabels[$bucket] ?? [$bucket, '#64748b'];
+                        ?>
+                            <div style="display:flex;align-items:center;gap:8px">
+                                <div style="width:110px;font-size:11px;color:#64748b;white-space:nowrap"><?php echo esc_html($label[0]); ?></div>
+                                <div style="flex:1;height:8px;background:#e2e8f0;border-radius:4px;overflow:hidden">
+                                    <div style="height:100%;width:<?php echo esc_attr((string) $pct); ?>%;background:<?php echo esc_attr($label[1]); ?>;border-radius:4px;transition:width 0.3s"></div>
+                                </div>
+                                <div style="width:48px;font-size:11px;font-weight:600;color:#475569;text-align:right"><?php echo esc_html((string) $pct); ?>%</div>
+                            </div>
+                        <?php endforeach; ?>
+                    </div>
+                    <!-- Zero results analysis -->
+                    <?php if (!empty($zeroResults)) : ?>
+                        <div style="border-top:1px solid #e2e8f0;padding-top:10px">
+                            <div style="font-size:11px;font-weight:600;color:#b91c1c;margin-bottom:6px"><?php /* translators: %d: number of zero-result queries */ echo esc_html(sprintf(__('%d zero-result queries need attention', 'shop2llm'), count($zeroResults))); ?></div>
+                            <?php foreach (array_slice($zeroResults, 0, 5) as $z) : ?>
+                                <?php if ($z['reason'] === null) { continue; } ?>
+                                <div style="padding:6px 8px;background:#fef2f2;border-left:2px solid #b91c1c;border-radius:0 4px 4px 0;margin-bottom:4px;font-size:11px">
+                                    <div style="font-weight:600;color:#7f1d1d"><?php echo esc_html($z['query']); ?></div>
+                                    <div style="color:#991b1b;margin-top:2px">→ <?php echo esc_html($z['reason']['reason']); ?></div>
+                                    <div style="color:#b91c1c;margin-top:1px;font-size:10px"><?php echo esc_html($z['reason']['action']); ?></div>
+                                </div>
+                            <?php endforeach; ?>
+                        </div>
+                    <?php endif; ?>
+                <?php else : ?>
+                    <!-- Free teaser -->
+                    <p style="color:#64748b;font-size:12px;margin:0;line-height:1.6">
+                        <?php /* translators: %d: number of AI searches in the last 7 days */ echo esc_html(sprintf(__('%d searches in the last 7 days. Intent classification, zero-result analysis and week-over-week trends available in Pro.', 'shop2llm'), $total)); ?>
+                        <a href="<?php echo esc_url(admin_url('admin.php?page=shop2llm-pro')); ?>" style="color:#6366f1;font-weight:600;text-decoration:underline"><?php echo esc_html__('Upgrade →', 'shop2llm'); ?></a>
+                    </p>
+                <?php endif; ?>
+            </div>
+            <?php endif; ?>
             <script>
             (function() {
                 var nonce = '<?php echo esc_js(wp_create_nonce('shop2llm_admin_nonce')); ?>';
@@ -3503,6 +3813,143 @@ function shop_to_llm_render_settings(): void
             </script>
         </div>
 
+        <?php // v1.13.0: AI Mention Monitoring card — Pro value-anchor. ?>
+        <?php $mentionHistory = get_option('shop_to_llm_mention_history', []);
+              $mentionLastRun = (string) get_option('shop_to_llm_mention_last_run', '');
+              $orKeyPresent = shop_to_llm_decrypt_value((string) get_option('shop_to_llm_openrouter_key', '')) !== '';
+              $isPro = shop_to_llm_is_pro();
+        ?>
+        <div class="stl-card" id="stl-mention-monitor" style="border-left:4px solid #6366f1">
+            <h2 style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
+                <svg viewBox="0 0 24 24" fill="none" stroke="#6366f1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                <?php echo esc_html__('AI Mention Monitoring', 'shop2llm'); ?>
+                <span class="stl-badge stl-badge-pro"><?php echo esc_html__('Pro', 'shop2llm'); ?></span>
+                <span class="s2ll-help" title="<?php echo esc_attr__('Weekly check: do ChatGPT, Claude, Perplexity and Gemini recommend your store when shoppers ask about your products? Track your share of voice vs competitors.', 'shop2llm'); ?>"></span>
+                <button type="button" id="stl-mention-run-now" style="margin-left:auto;padding:4px 12px;background:#6366f1;color:#fff;border:none;border-radius:4px;font-size:12px;font-weight:600;cursor:pointer"><?php echo esc_html__('Run Now', 'shop2llm'); ?></button>
+            </h2>
+            <?php if (!$isPro) : ?>
+                <p style="color:#64748b;font-size:13px;margin:0;line-height:1.6">
+                    <?php echo esc_html__('See if AI assistants mention your store when shoppers ask about your products. Weekly detection across ChatGPT, Claude, Perplexity and Gemini with share-of-voice competitor tracking.', 'shop2llm'); ?>
+                    <a href="<?php echo esc_url(admin_url('admin.php?page=shop2llm-pro')); ?>" style="color:#6366f1;font-weight:600;text-decoration:underline"><?php echo esc_html__('Upgrade to Pro →', 'shop2llm'); ?></a>
+                </p>
+            <?php elseif (!$orKeyPresent) : ?>
+                <p style="color:#b45309;font-size:13px;margin:0;line-height:1.6;padding:10px 12px;background:#fef3c7;border:1px solid #fcd34d;border-radius:6px">
+                    <?php echo wp_kses(shop_to_llm_icon('warning'), shop_to_llm_allowed_svg()); ?>
+                    <?php echo esc_html__('Configure an OpenRouter API key to enable AI Mention Monitoring.', 'shop2llm'); ?>
+                    <a href="<?php echo esc_url(admin_url('admin.php?page=shop2llm&tab=settings')); ?>" style="color:#b45309;font-weight:600;text-decoration:underline"><?php echo esc_html__('Settings → AI Provider Keys', 'shop2llm'); ?></a>
+                </p>
+            <?php elseif (empty($mentionHistory)) : ?>
+                <p style="color:#64748b;font-size:13px;margin:0;line-height:1.6">
+                    <?php echo esc_html__('Your first mention check will run tomorrow night (weekly schedule). Or click "Run Now" to check immediately.', 'shop2llm'); ?>
+                </p>
+            <?php else : ?>
+                <?php // Latest week summary ?>
+                <?php $latest = end($mentionHistory); $summary = $latest['summary'] ?? []; ?>
+                <?php
+                    $platformLabels = [
+                        'chatgpt' => ['ChatGPT', '#10a37f'],
+                        'claude'   => ['Claude', '#d97706'],
+                        'perplexity' => ['Perplexity', '#0ea5e9'],
+                        'gemini'   => ['Gemini', '#4285f4'],
+                    ];
+                    $avgRate = 0; $rateCount = 0;
+                    foreach ($summary as $s) { $avgRate += (int) ($s['rate'] ?? 0); $rateCount++; }
+                    $avgRate = $rateCount > 0 ? round($avgRate / $rateCount) : 0;
+                ?>
+                <!-- Average rate hero strip -->
+                <div style="display:flex;align-items:center;gap:16px;padding:12px 16px;background:#f1f5f9;border-radius:8px;margin-bottom:12px">
+                    <div style="font-size:28px;font-weight:700;color:#1e293b"><?php echo esc_html((string) $avgRate); ?><span style="font-size:14px;color:#64748b">%</span></div>
+                    <div style="flex:1">
+                        <div style="font-size:12px;font-weight:600;color:#475569"><?php echo esc_html__('Average AI mention rate', 'shop2llm'); ?></div>
+                        <div style="font-size:11px;color:#94a3b8">
+                            <?php echo esc_html__('Across', 'shop2llm'); ?>
+                            <?php echo esc_html((string) count($summary)); ?>
+                            <?php echo esc_html__('platforms · last run:', 'shop2llm'); ?>
+                            <?php echo esc_html($mentionLastRun); ?>
+                        </div>
+                    </div>
+                </div>
+                <!-- Per-platform rows -->
+                <table id="stl-mention-rows" style="width:100%;border-collapse:collapse;font-size:13px">
+                    <thead>
+                        <tr style="color:#94a3b8;font-size:11px;text-transform:uppercase;letter-spacing:0.04em">
+                            <th style="text-align:left;padding:6px 8px"><?php echo esc_html__('Platform', 'shop2llm'); ?></th>
+                            <th style="text-align:center;padding:6px 8px"><?php echo esc_html__('Mention Rate', 'shop2llm'); ?></th>
+                            <th style="text-align:right;padding:6px 8px"><?php echo esc_html__('Detected', 'shop2llm'); ?></th>
+                            <th style="text-align:right;padding:6px 8px"><?php echo esc_html__('Trend', 'shop2llm'); ?></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($platformLabels as $pKey => $pInfo) : ?>
+                            <?php
+                                $data = $summary[$pKey] ?? ['rate' => 0, 'mentioned' => 0, 'total' => 0];
+                                $currentRate = (int) ($data['rate'] ?? 0);
+                                // Compute trend vs previous week
+                                $trend = '';
+                                if (count($mentionHistory) >= 2) {
+                                    $prev = $mentionHistory[count($mentionHistory) - 2]['summary'][$pKey]['rate'] ?? null;
+                                    if ($prev !== null) {
+                                        $diff = $currentRate - (int) $prev;
+                                        if ($diff > 0)  { $trend = '<span style="color:#15803d">↑ +' . $diff . '</span>'; }
+                                        elseif ($diff < 0) { $trend = '<span style="color:#b91c1c">↓ ' . $diff . '</span>'; }
+                                        else { $trend = '<span style="color:#94a3b8">—</span>'; }
+                                    }
+                                }
+                            ?>
+                            <tr style="border-bottom:1px solid #f1f5f9">
+                                <td style="padding:8px">
+                                    <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:<?php echo esc_attr($pInfo[1]); ?>;margin-right:6px"></span>
+                                    <span style="font-weight:500"><?php echo esc_html($pInfo[0]); ?></span>
+                                </td>
+                                <td style="padding:8px;text-align:center">
+                                    <div style="display:inline-block;width:60px;background:#f1f5f9;border-radius:4px;overflow:hidden;height:8px;vertical-align:middle;margin-right:8px">
+                                        <div style="height:100%;width:<?php echo esc_attr((string) $currentRate); ?>%;background:<?php echo esc_attr($pInfo[1]); ?>;border-radius:4px;transition:width 0.3s"></div>
+                                    </div>
+                                    <span style="font-weight:600"><?php echo esc_html((string) $currentRate); ?>%</span>
+                                </td>
+                                <td style="padding:8px;text-align:right;color:#475569"><?php echo esc_html((string) ($data['mentioned'] ?? 0)); ?> / <?php echo esc_html((string) ($data['total'] ?? 0)); ?></td>
+                                <td style="padding:8px;text-align:right;white-space:nowrap"><?php echo wp_kses_post($trend); ?></td>
+                            </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            <?php endif; ?>
+            <script>
+            (function() {
+                var btn = document.getElementById('stl-mention-run-now');
+                if (!btn) { return; }
+                var nonce = <?php echo wp_json_encode(wp_create_nonce('shop2llm_run_mention_monitor')); ?>;
+                var ajaxUrl = <?php echo wp_json_encode(admin_url('admin-ajax.php')); ?>;
+                btn.addEventListener('click', function() {
+                    var origLabel = btn.textContent;
+                    btn.disabled = true;
+                    btn.textContent = <?php echo wp_json_encode(__('Running…', 'shop2llm')); ?>;
+                    var fd = new FormData();
+                    fd.append('action', 'shop2llm_run_mention_monitor');
+                    fd.append('nonce', nonce);
+                    fetch(ajaxUrl, { method: 'POST', credentials: 'same-origin', body: fd })
+                        .then(function(r) { return r.json(); })
+                        .then(function(res) {
+                            if (res && res.success) {
+                                btn.textContent = <?php echo wp_json_encode(__('Run Now ✓', 'shop2llm')); ?>;
+                                setTimeout(function() { window.location.reload(); }, 800);
+                            } else {
+                                var msg = (res && res.data && res.data.message) ? res.data.message : '<?php echo esc_js(__('Mention monitor failed. Check your OpenRouter API key.', 'shop2llm')); ?>';
+                                btn.textContent = <?php echo wp_json_encode(__('Run Now — Retry', 'shop2llm')); ?>;
+                                btn.disabled = false;
+                                alert(msg);
+                            }
+                        })
+                        .catch(function() {
+                            btn.textContent = origLabel;
+                            btn.disabled = false;
+                            alert('<?php echo esc_js(__('Network error. Please try again.', 'shop2llm')); ?>');
+                        });
+                });
+            })();
+            </script>
+        </div>
+
         <!-- AI-Driven Traffic -->
         <div class="stl-card" style="border-left:4px solid #10b981">
             <h2 style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
@@ -3527,6 +3974,7 @@ function shop_to_llm_render_settings(): void
                 var target = document.querySelector(location.hash);
                 if (target && target.tagName === 'DETAILS') { target.open = true; }
             }
+        })();
         </script>
 
         <!-- Settings Tab -->
@@ -3616,6 +4064,31 @@ function shop_to_llm_render_settings(): void
                                 ?><span class="stl-badge" style="background:#f5f3ff;color:#7c3aed;border:1px solid #ddd6fe;margin-left:8px"><?php echo esc_html__('Recommended', 'shop2llm'); ?></span><?php
                             endif; ?>
                             <p style="color:#64748b;font-size:11px;margin:4px 0 0"><?php echo esc_html__('This sends your focus query to public APIs to check entity presence. No personal data is transmitted.', 'shop2llm'); ?></p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th><?php echo esc_html__('API Provider Keys', 'shop2llm'); ?></th>
+                        <td>
+                            <?php // v1.12.0: Bring-Your-Own-Key for Hero Test Search + future Mention Monitor.
+                                 $orKeyStored = (string) get_option('shop_to_llm_openrouter_key', '');
+                                 $orKeyDecrypted = shop_to_llm_decrypt_value($orKeyStored);
+                            ?>
+                            <div style="display:flex;flex-direction:column;gap:10px">
+                                <div>
+                                    <label for="shop_to_llm_openrouter_key" style="font-weight:600;font-size:12px;color:#334155">OpenRouter API Key</label>
+                                    <div style="display:flex;gap:6px;margin-top:4px">
+                                        <input type="password" id="shop_to_llm_openrouter_key" name="shop_to_llm_openrouter_key" value="<?php echo esc_attr($orKeyDecrypted); ?>" placeholder="sk-or-v1-..." style="flex:1;max-width:320px;padding:6px 10px;border:1px solid #cbd5e1;border-radius:4px;font-family:monospace;font-size:12px">
+                                        <?php if ($orKeyDecrypted !== '') : ?>
+                                            <span class="stl-badge" style="background:#dcfce7;color:#15803d;border:1px solid #bbf7d0"><?php echo esc_html__('Configured', 'shop2llm'); ?></span>
+                                        <?php else : ?>
+                                            <span class="stl-badge" style="background:#f1f5f9;color:#64748b;border:1px solid #e2e8f0"><?php echo esc_html__('Not set — using Shop2LLM free proxy (5/day)', 'shop2llm'); ?></span>
+                                        <?php endif; ?>
+                                    </div>
+                                    <p style="color:#64748b;font-size:11px;margin:4px 0 0">
+                                        <?php echo esc_html__('Optional. Your key is stored encrypted and never sent to Shop2LLM servers. When configured, Hero Test Search uses OpenRouter directly (your API credits, unlimited). Works with ChatGPT, Claude, Perplexity, Gemma, Llama 3 and 100+ models via openrouter.ai.', 'shop2llm'); ?>
+                                    </p>
+                                </div>
+                            </div>
                         </td>
                     </tr>
                     <tr>
@@ -6025,7 +6498,32 @@ function shop_to_llm_build_llms_txt(): string
             $price = shop_to_llm_plain_price($product);
             $stock = $product->is_in_stock() ? 'In Stock' : 'Out of Stock';
             $url = get_permalink($product->get_id());
-            $output .= '- [' . esc_html($product->get_name()) . '](' . esc_url($url) . '): ' . esc_html($price) . ' — ' . esc_html($stock) . "\n";
+            $productName = esc_html($product->get_name());
+            // v1.11.0: enrich llms.txt product entries with primary category and
+            // short-description excerpt so AI crawlers get product context from
+            // the catalog entry itself (no need to fetch the detail page first).
+            $mainCatName = '';
+            $cats = get_the_terms($product->get_id(), 'product_cat');
+            if (is_array($cats) && !empty($cats) && $cats[0] instanceof \WP_Term) {
+                $mainCatName = esc_html($cats[0]->name);
+            }
+            $shortDesc = '';
+            $rawDesc = $product->get_short_description();
+            if (is_string($rawDesc) && $rawDesc !== '') {
+                // wp_html_excerpt strips HTML, trims to $length, appends $more
+                $shortDesc = esc_html(wp_html_excerpt($rawDesc, 120, '…'));
+            }
+            // Build the product line: title + URL + price + stock + category
+            $line = '- [' . $productName . '](' . esc_url($url) . '): '
+                  . $price . ' — ' . $stock;
+            if ($mainCatName !== '') {
+                $line .= ' · ' . $mainCatName;
+            }
+            $output .= $line . "\n";
+            // Continuation line: short description excerpt (if any)
+            if ($shortDesc !== '') {
+                $output .= '  ' . $shortDesc . "\n";
+            }
         }
         $total = wp_count_posts('product')->publish ?? 0;
         if ($total > 100) {
@@ -6696,10 +7194,814 @@ function shop_to_llm_product_feed_xml(): void
     exit;
 }
 
+/**
+ * v1.16.0: Extract shared product fields used across all feed formats
+ * (XML, generic JSON, OpenAI commerce spec).
+ *
+ * @param \WC_Product $p WooCommerce product object
+ * @return array<string, mixed> Normalized product data
+ */
+function shop_to_llm_extract_product_feed_fields(\WC_Product $p): array
+{
+    $pid = $p->get_id();
+    $imgId = $p->get_image_id();
+    $gtin = $p->get_meta('_gtin') ?: $p->get_meta('_barcode') ?: '';
+    $cats = wp_get_post_terms($pid, 'product_cat', ['fields' => 'names']);
+    return [
+        'id' => (string) $pid,
+        'sku' => (string) ($p->get_sku() ?: 'WC-' . $pid),
+        'title' => wp_strip_all_tags((string) $p->get_name()),
+        'description' => wp_strip_all_tags((string) ($p->get_short_description() ?: $p->get_description())),
+        'url' => (string) get_permalink($pid),
+        'image_url' => $imgId ? (string) wp_get_attachment_url($imgId) : '',
+        'price' => (string) $p->get_price(),
+        'regular_price' => (string) $p->get_regular_price(),
+        'sale_price' => (string) $p->get_sale_price(),
+        'currency' => get_woocommerce_currency(),
+        'in_stock' => $p->is_in_stock(),
+        'availability' => $p->is_in_stock() ? 'in stock' : 'out of stock',
+        'categories' => is_array($cats) ? $cats : [],
+        'brand' => (string) get_bloginfo('name'),
+        'gtin' => (string) $gtin,
+    ];
+}
+
+/**
+ * v1.16.0: Generic JSON product feed — Shopify/Meta/Pinterest/TikTok compatible.
+ * Path: /product-feed.json
+ *
+ * Mirrors the Google Merchant-compatible JSON structure that Meta Catalog
+ * Manager and Pinterest Catalogs both accept, so a single feed covers multiple
+ * social commerce platforms plus AI assistants.
+ */
+function shop_to_llm_product_feed_json(): void
+{
+    if (!shop_to_llm_has_woocommerce()) {
+        status_header(404);
+        exit;
+    }
+    $products = wc_get_products(['limit' => 100, 'status' => 'publish', 'orderby' => 'date']);
+    $items = [];
+    foreach ($products as $p) {
+        $f = shop_to_llm_extract_product_feed_fields($p);
+        $item = [
+            'id' => $f['sku'],
+            'title' => $f['title'],
+            'description' => $f['description'],
+            'link' => $f['url'],
+            'image_link' => $f['image_url'],
+            'availability' => $f['availability'],
+            'price' => $f['price'] !== '' ? $f['price'] . ' ' . $f['currency'] : '',
+            'brand' => $f['brand'],
+            'gtin' => $f['gtin'],
+            'categories' => $f['categories'],
+            'condition' => 'new',
+        ];
+        $items[] = $item;
+    }
+    header('Content-Type: application/json; charset=utf-8');
+    echo wp_json_encode([
+        'store_name' => get_bloginfo('name'),
+        'store_url' => get_site_url(),
+        'generated_at' => current_time('mysql'),
+        'items' => $items,
+    ], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+    exit;
+}
+
+/**
+ * v1.16.0: OpenAI ChatGPT Shopping feed — OpenAI commerce spec format.
+ * Path: /openai-feed.json
+ *
+ * Adheres to the feed shape documented at chatgpt.com/merchants so that
+ * store owners can submit a single pre-filled URL when applying for the
+ * ChatGPT Shopping product discovery program.
+ */
+function shop_to_llm_product_feed_openai(): void
+{
+    if (!shop_to_llm_has_woocommerce()) {
+        status_header(404);
+        exit;
+    }
+    $products = wc_get_products(['limit' => 100, 'status' => 'publish', 'orderby' => 'date']);
+    $items = [];
+    foreach ($products as $p) {
+        $f = shop_to_llm_extract_product_feed_fields($p);
+        $items[] = [
+            'id' => $f['sku'],
+            'title' => $f['title'],
+            'description' => $f['description'],
+            'url' => $f['url'],
+            'image_url' => $f['image_url'],
+            'price' => [
+                'amount' => $f['price'],
+                'currency' => $f['currency'],
+            ],
+            'availability' => $f['availability'],
+            'brand' => $f['brand'],
+            'gtin' => $f['gtin'],
+            'categories' => $f['categories'],
+            'condition' => 'new',
+        ];
+    }
+    header('Content-Type: application/json; charset=utf-8');
+    echo wp_json_encode([
+        '@context' => 'https://chatgpt.com/merchants/schema.json',
+        'store' => [
+            'name' => get_bloginfo('name'),
+            'url' => get_site_url(),
+        ],
+        'generated_at' => current_time('mysql'),
+        'products' => $items,
+    ], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+    exit;
+}
+
+// ─── v1.13.0: AI Mention Monitoring (Pro) ──────────────────────────────────
+// Weekly detection of whether your brand appears in AI assistant responses
+// for real shopping queries. Complementary to AIReady's weekly mention
+// tracking — Shop2LLM runs all four platforms in one shot, parses brand
+// mentions via normalized matching (not regex), and records share-of-voice
+// competitors so shop owners can see who else AI recommends alongside them.
+
+function shop_to_llm_is_pro(): bool
+{
+    return class_exists('Shop_To_LLM_Pro') || defined('SHOP_TO_LLM_PRO_VERSION');
+}
+
+/**
+ * Collect focus queries to run mention monitoring against.
+ *
+ * Three sources, merged and deduplicated (max 10 entries):
+ *   1. shop_to_llm_focus_query_ideas — AI Search Activity "Add to Focus"
+ *      chips (set by admins from unmatched AI searches)
+ *   2. _shop2llm_focus_query postmeta — editor meta box per-post focus query
+ *   3. Fallback — top 5 product category + primary product combinations
+ *
+ * @return array<int, string> Focus queries (no brand name included)
+ */
+function shop_to_llm_mention_collect_queries(): array
+{
+    $queries = [];
+
+    // Source 1: AJAX-collected focus ideas from AI Search Activity tab
+    $ideas = get_option('shop_to_llm_focus_query_ideas', []);
+    if (is_array($ideas)) {
+        foreach ($ideas as $idea) {
+            if (is_string($idea['query'] ?? '') && strlen($idea['query']) > 3) {
+                $queries[] = sanitize_text_field($idea['query']);
+            }
+        }
+    }
+
+    // Source 2: Per-post focus queries from editor meta boxes
+    global $wpdb;
+    $postQueries = $wpdb->get_col($wpdb->prepare( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+        "SELECT DISTINCT meta_value FROM {$wpdb->postmeta} WHERE meta_key = %s AND meta_value != '' LIMIT 20", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+        '_shop2llm_focus_query'
+    ));
+    if (is_array($postQueries)) {
+        foreach ($postQueries as $q) {
+            $q = sanitize_text_field((string) $q);
+            if (strlen($q) > 3) {
+                $queries[] = $q;
+            }
+        }
+    }
+
+    // Source 3: Fallback — product categories + top products
+    if (empty($queries) && shop_to_llm_has_woocommerce()) {
+        $categories = get_terms(['taxonomy' => 'product_cat', 'hide_empty' => true, 'number' => 5]);
+        $topProducts = wc_get_products(['limit' => 5, 'status' => 'publish', 'orderby' => 'date']);
+        if (!is_wp_error($categories)) {
+            foreach ($categories as $cat) {
+                $queries[] = 'best ' . sanitize_text_field($cat->name);
+            }
+        }
+        foreach ($topProducts as $p) {
+            $queries[] = 'find ' . sanitize_text_field($p->get_name());
+        }
+    }
+
+    $queries = array_values(array_unique(array_filter($queries, static fn ($q) => strlen($q) > 3)));
+    return array_slice($queries, 0, 10);
+}
+
+/**
+ * Collect brand terms to match against AI responses.
+ *
+ * Matched case-insensitively. Includes partial variants so AI answers like
+ * "Brand X shirts" or "the X store" both trigger a mention.
+ *
+ * @return array<int, string> Normalized brand/URL identifiers
+ */
+function shop_to_llm_mention_collect_brand_terms(): array
+{
+    $terms = [];
+
+    // Blog/site name (primary)
+    $siteName = sanitize_text_field((string) get_bloginfo('name'));
+    if ($siteName !== '') {
+        $terms[] = strtolower($siteName);
+        // Strip common suffixes for partial matches ("Store", "Shop", "Co", "LLC")
+        $stripped = preg_replace('/\b(store|shop|company|co|llc|inc)\b/i', '', $siteName);
+        if (is_string($stripped)) {
+            $stripped = trim($stripped);
+            if ($stripped !== '' && strtolower($stripped) !== strtolower($siteName)) {
+                $terms[] = strtolower($stripped);
+            }
+        }
+    }
+
+    // Domain (primary + www-agnostic + TLD-stripped)
+    $host = wp_parse_url(get_site_url(), PHP_URL_HOST);
+    if ($host) {
+        $terms[] = strtolower($host);
+        $bareHost = preg_replace('/^www\./i', '', $host);
+        if (is_string($bareHost) && strtolower($bareHost) !== strtolower($host)) {
+            $terms[] = strtolower($bareHost);
+        }
+        $domainPart = preg_replace('/\.[^.]+$/', '', $bareHost);
+        if (is_string($domainPart) && strlen($domainPart) > 2) {
+            $terms[] = strtolower($domainPart);
+        }
+    }
+
+    // WooCommerce product-brand meta (if present)
+    if (shop_to_llm_has_woocommerce()) {
+        $terms[] = 'your store'; // fallback — generic mention detection
+
+        // Product category names as indirect "shop is in this category" signal
+        $categories = get_terms(['taxonomy' => 'product_cat', 'hide_empty' => true, 'number' => 3]);
+        if (!is_wp_error($categories)) {
+            foreach ($categories as $cat) {
+                if (strlen($cat->name) > 3) {
+                    $terms[] = strtolower($cat->name);
+                }
+            }
+        }
+    }
+
+    return array_values(array_unique(array_filter($terms, static fn ($t) => strlen($t) > 2)));
+}
+
+/**
+ * v1.13.0: Run mention monitoring job — scheduled weekly or on-demand.
+ *
+ * @param bool $onDemand  True = admin click "Run Now" (bypass schedule guard)
+ * @return array{status:string,results:array,error?:string}
+ */
+function shop_to_llm_mention_job(bool $onDemand = false): array
+{
+    // Pro guard — mention monitoring requires the Pro package
+    if (!shop_to_llm_is_pro()) {
+        return ['status' => 'skipped', 'error' => 'requires_pro'];
+    }
+
+    // BYOK guard — admin must configure an OpenRouter key
+    $orKey = shop_to_llm_decrypt_value((string) get_option('shop_to_llm_openrouter_key', ''));
+    if ($orKey === '') {
+        return ['status' => 'skipped', 'error' => 'no_api_key'];
+    }
+
+    $queries = shop_to_llm_mention_collect_queries();
+    $brandTerms = shop_to_llm_mention_collect_brand_terms();
+
+    if (empty($queries)) {
+        return ['status' => 'skipped', 'error' => 'no_queries'];
+    }
+
+    $platforms = [
+        'chatgpt' => 'openai/gpt-4o-mini',
+        'claude'   => 'anthropic/claude-3.5-haiku',
+        'perplexity' => 'perplexity/sonar',
+        'gemini'   => 'google/gemini-2.0-flash-exp:free',
+    ];
+
+    $results = [];
+    foreach ($platforms as $platform => $model) {
+        $queryResults = [];
+        foreach ($queries as $query) {
+            $response = shop_to_llm_mention_call_platform($platform, $model, $query, $orKey);
+            if ($response === '') {
+                $queryResults[] = ['query' => $query, 'mentioned' => false, 'brand_matched' => '', 'competitors' => []];
+                continue;
+            }
+            $parsed = shop_to_llm_mention_parse_response($response, $brandTerms);
+            $queryResults[] = [
+                'query' => $query,
+                'mentioned' => $parsed['mentioned'],
+                'brand_matched' => $parsed['brand_matched'],
+                'competitors' => $parsed['competitors'],
+            ];
+        }
+        $results[$platform] = $queryResults;
+    }
+
+    $history = get_option('shop_to_llm_mention_history', []);
+    if (!is_array($history)) {
+        $history = [];
+    }
+
+    $summary = [];
+    foreach ($results as $platform => $queryResults) {
+        $total = count($queryResults);
+        $mentioned = count(array_filter($queryResults, static fn ($r) => !empty($r['mentioned'])));
+        $summary[$platform] = [
+            'total' => $total,
+            'mentioned' => $mentioned,
+            'rate' => $total > 0 ? round(($mentioned / $total) * 100) : 0,
+        ];
+    }
+
+    $history[] = [
+        'timestamp' => current_time('mysql'),
+        'summary' => $summary,
+        'queries_per_platform' => $results,
+    ];
+
+    // Keep last 12 weeks of history (rolling)
+    if (count($history) > 12) {
+        $history = array_slice($history, -12);
+    }
+
+    update_option('shop_to_llm_mention_history', $history, false);
+    update_option('shop_to_llm_mention_last_run', current_time('mysql'), false);
+
+    return ['status' => 'complete', 'summary' => $summary, 'results' => $results];
+}
+
+/**
+ * Call a single AI platform via OpenRouter and return the raw answer text.
+ *
+ * @param string $platform  Platform identifier (chatgpt, claude, perplexity, gemini)
+ * @param string $modelId   OpenRouter model ID
+ * @param string $query     Shopping query (no brand name)
+ * @param string $apiKey    OpenRouter API key (already decrypted)
+ * @return string  Raw answer text, empty on failure
+ */
+function shop_to_llm_mention_call_platform(string $platform, string $modelId, string $query, string $apiKey): string
+{
+    $siteName = get_bloginfo('name');
+    $siteUrl = get_site_url();
+
+    // Platform-specific system prompts (each model has its own tendency to
+    // either cite sources or answer directly — we normalize the behavior so
+    // mention detection apples-to-apples)
+    $systemPrompts = [
+        'chatgpt' => 'You are a helpful shopping assistant. Answer the user\'s question naturally, mentioning real brand names you know. Be specific and concise.',
+        'claude' => 'You are a knowledgeable shopping assistant. Answer the user\'s shopping question naturally and helpfully. Mention actual store/brand names when relevant.',
+        'perplexity' => 'Answer the user\'s shopping query. Be specific, mention real product brands and where to buy. Keep it concise.',
+        'gemini' => 'You are a shopping assistant. Answer the user\'s question naturally with specific product or store recommendations.',
+    ];
+
+    $payload = [
+        'model' => $modelId,
+        'messages' => [
+            [
+                'role' => 'system',
+                'content' => $systemPrompts[$platform] ?? $systemPrompts['chatgpt'],
+            ],
+            [
+                'role' => 'user',
+                'content' => $query,
+            ],
+        ],
+        'temperature' => 0.4,
+        'max_tokens' => 300,
+    ];
+
+    $response = wp_remote_post('https://openrouter.ai/api/v1/chat/completions', [
+        'timeout' => 25,
+        'headers' => [
+            'Authorization' => 'Bearer ' . $apiKey,
+            'Content-Type' => 'application/json',
+            'HTTP-Referer' => $siteUrl,
+            'X-Title' => $siteName,
+        ],
+        'body' => wp_json_encode($payload),
+    ]);
+
+    if (is_wp_error($response)) {
+        return '';
+    }
+
+    $code = wp_remote_retrieve_response_code($response);
+    if ($code !== 200) {
+        return '';
+    }
+
+    $body = json_decode(wp_remote_retrieve_body($response), true);
+    $content = $body['choices'][0]['message']['content'] ?? '';
+    return is_string($content) ? $content : '';
+}
+
+/**
+ * Parse AI response for brand mentions and competitor names.
+ *
+ * Detection strategy:
+ *   1. Normalize response to lowercase for case-insensitive matching
+ *   2. Scan for each brand term — any term with 4+ chars that appears as a
+ *      word boundary counts as a mention (partial terms match, e.g. "Brand X"
+ *      matches term "brand")
+ *   3. Extract competitor names — simple heuristic: any capitalized word 4+
+ *      chars that is NOT a common shopping stopword is flagged as a competitor
+ *      (used for share-of-voice, not a precise detection)
+ *
+ * @param string $response    Raw AI answer
+ * @param array<int, string> $brandTerms  Normalized brand/domain identifiers
+ * @return array{mentioned:bool, brand_matched:string, competitors:array<int,string>}
+ */
+function shop_to_llm_mention_parse_response(string $response, array $brandTerms): array
+{
+    $lower = strtolower($response);
+
+    // Brand mention detection — word-boundary aware, case-insensitive
+    $brandMatched = '';
+    foreach ($brandTerms as $term) {
+        $term = trim(strtolower((string) $term));
+        if (strlen($term) < 3) {
+            continue;
+        }
+        // Word boundary match — prevents "brand" matching "branding"
+        if (preg_match('/\b' . preg_quote($term, '/') . '\b/', $lower)) {
+            $brandMatched = $term;
+            break;
+        }
+    }
+
+    // Competitor extraction — capitalized word sequences 4+ chars, not
+    // common stopwords, not already our brand, not "Amazon", "Google", etc.
+    $stopwords = [
+        'what', 'where', 'when', 'best', 'find', 'search', 'buy', 'shop',
+        'price', 'cheap', 'free', 'new', 'used', 'review', 'compare',
+        'amazon', 'google', 'walmart', 'target', 'ebay', 'costco',
+        'also', 'this', 'that', 'these', 'those', 'their', 'there', 'here',
+        'with', 'from', 'have', 'has', 'will', 'your', 'store', 'online',
+        'chatgpt', 'claude', 'perplexity', 'gemini', 'openai', 'anthropic',
+    ];
+    $competitors = [];
+    if (preg_match_all('/\b([A-Z][A-Za-z]+(?:\s+[A-Z][A-Za-z]+){0,2})\b/', $response, $matches)) {
+        foreach ($matches[1] as $name) {
+            $lowerName = strtolower($name);
+            if (strlen($name) < 4) {
+                continue;
+            }
+            if (in_array($lowerName, $stopwords, true)) {
+                continue;
+            }
+            // Skip if this IS our brand (false positive in competitor detection)
+            $isOurBrand = false;
+            foreach ($brandTerms as $bt) {
+                $btLower = strtolower((string) $bt);
+                if ($btLower !== '' && (strpos($lowerName, $btLower) !== false || strpos($btLower, $lowerName) !== false)) {
+                    $isOurBrand = true;
+                    break;
+                }
+            }
+            if ($isOurBrand) {
+                continue;
+            }
+            if (!in_array($name, $competitors, true)) {
+                $competitors[] = $name;
+            }
+        }
+    }
+    // Cap at top 5 competitors (keep output manageable)
+    $competitors = array_slice($competitors, 0, 5);
+
+    return [
+        'mentioned' => $brandMatched !== '',
+        'brand_matched' => $brandMatched,
+        'competitors' => $competitors,
+    ];
+}
+
+/**
+ * v1.13.0: WP-Cron weekly entry point. Runs shop_to_llm_mention_job() and
+ * stores results. Silently exits if Pro/BYOK/queries are missing (the job
+ * function handles all guards).
+ */
+function shop_to_llm_mention_job_cron(): void
+{
+    shop_to_llm_mention_job(false);
+}
+
+/**
+ * v1.13.0: Admin AJAX handler — "Run Now" button from the Dashboard card.
+ * Validates nonce + manage_options, then dispatches shop_to_llm_mention_job()
+ * synchronously and returns the full summary for the dashboard to render.
+ */
+function shop_to_llm_handle_run_mention_monitor(): void
+{
+    if (!current_user_can('manage_options')) {
+        wp_send_json_error(['message' => esc_html__('Permission denied.', 'shop2llm')]);
+    }
+    check_ajax_referer('shop2llm_run_mention_monitor', 'nonce');
+
+    $result = shop_to_llm_mention_job(true);
+
+    if (($result['status'] ?? '') !== 'complete') {
+        $errMap = [
+            'requires_pro' => esc_html__('AI Mention Monitoring requires Shop2LLM Pro.', 'shop2llm'),
+            'no_api_key' => esc_html__('Configure an OpenRouter API key in Settings → AI Provider Keys first.', 'shop2llm'),
+            'no_queries' => esc_html__('No focus queries available — add some from the AI Search Activity tab or set up products.', 'shop2llm'),
+        ];
+        wp_send_json_error([
+            'message' => $errMap[$result['error'] ?? 'unknown'] ?? esc_html__('Mention monitor could not run.', 'shop2llm'),
+            'reason' => $result['error'] ?? 'unknown',
+        ]);
+    }
+
+    // Flatten summary into platform rows for the dashboard card
+    $platformLabels = [
+        'chatgpt' => 'ChatGPT',
+        'claude' => 'Claude',
+        'perplexity' => 'Perplexity',
+        'gemini' => 'Gemini',
+    ];
+    $rows = [];
+    foreach (($result['summary'] ?? []) as $platform => $data) {
+        $rows[] = [
+            'platform' => $platform,
+            'label' => $platformLabels[$platform] ?? $platform,
+            'rate' => (int) ($data['rate'] ?? 0),
+            'mentioned' => (int) ($data['mentioned'] ?? 0),
+            'total' => (int) ($data['total'] ?? 0),
+        ];
+    }
+
+    wp_send_json_success([
+        'rows' => $rows,
+        'last_run' => get_option('shop_to_llm_mention_last_run', ''),
+    ]);
+}
+
+// ─── v1.14.0: AI Search Intent Analysis Depth (Pro) ──────────────────────────
+// Real-time classification of AI search queries into intent buckets, zero-result
+// reason inference, and week-over-week trend detection. All computed from the
+// same 7-day search transients used by AI Search Activity — no new storage.
+
+/**
+ * v1.14.0: Classify a single AI search query into an intent bucket.
+ *
+ * Rule-based, deterministic classification (no LLM calls). Four buckets:
+ *   product_search   — specific product or SKU lookup ("red cotton t-shirt")
+ *   category_browse  — browsing/exploring a category ("best jackets under $50")
+ *   price_filter     — primary intent is price-constrained ("under $20", "cheap jeans")
+ *   attribute_filter — shopping by a specific feature ("waterproof hiking boots")
+ *
+ * Order matters: price and attribute take priority over product/category
+ * because they represent a narrower, more actionable purchase signal.
+ *
+ * @param string $query  Raw search query (already sanitized)
+ * @return array{bucket:string, confidence:float, matched_terms:array<int,string>}
+ */
+function shop_to_llm_classify_search_intent(string $query): array
+{
+    $q = strtolower(trim($query));
+    $matchedTerms = [];
+
+    // Price patterns: "under $20", "below $30", "cheap", "low price", "$10-$20"
+    $pricePatterns = [
+        '/\bunder\s*\$?\d+/',
+        '/\bbelow\s*\$?\d+/',
+        '/\bcheap\b/',
+        '/\blow\s*price\b/',
+        '/\baffordable\b/',
+        '/\bbetween\s*\$?\d+\s*(and|to)\s*\$?\d+/',
+        '/\b(less|under)\s*(than\s*)?\$?\d+/',
+        '/\$\d+\s*[-–]\s*\$?\d+/',
+    ];
+    foreach ($pricePatterns as $re) {
+        if (preg_match($re, $q, $m)) {
+            $matchedTerms[] = $m[0];
+        }
+    }
+    if (!empty($matchedTerms)) {
+        return ['bucket' => 'price_filter', 'confidence' => 0.92, 'matched_terms' => $matchedTerms];
+    }
+
+    // Attribute patterns: colors, sizes, materials, features
+    $attributeWords = [
+        'red', 'blue', 'green', 'black', 'white', 'yellow', 'pink', 'purple',
+        'orange', 'brown', 'gray', 'grey', 'silver', 'gold', 'navy', 'beige',
+        'xs', 'sm', 'small', 'md', 'medium', 'lg', 'large', 'xl', 'xxl',
+        'cotton', 'leather', 'wool', 'silk', 'polyester', 'nylon', 'linen',
+        'denim', 'waterproof', 'wireless', 'bluetooth', 'rechargeable', 'portable',
+        'organic', 'sustainable', 'breathable', 'lightweight', 'eco-friendly',
+    ];
+    foreach ($attributeWords as $w) {
+        if (preg_match('/\b' . preg_quote($w, '/') . '\b/', $q)) {
+            $matchedTerms[] = $w;
+        }
+    }
+    if (count($matchedTerms) >= 2) {
+        return ['bucket' => 'attribute_filter', 'confidence' => 0.88, 'matched_terms' => $matchedTerms];
+    }
+
+    // Category browse patterns — reset: attribute candidates from above must not leak here
+    $matchedTerms = [];
+    $browseWords = ['best', 'top', 'popular', 'review', 'reviews', 'compare', 'vs', 'versus', 'recommend', 'ranking', 'trending'];
+    foreach ($browseWords as $w) {
+        if (preg_match('/\b' . preg_quote($w, '/') . '\b/', $q)) {
+            $matchedTerms[] = $w;
+        }
+    }
+    if (!empty($matchedTerms)) {
+        return ['bucket' => 'category_browse', 'confidence' => 0.85, 'matched_terms' => $matchedTerms];
+    }
+
+    // Default: product search
+    return ['bucket' => 'product_search', 'confidence' => 0.60, 'matched_terms' => []];
+}
+
+/**
+ * v1.14.0: Infer why a search query returned zero products in this store.
+ * Lightweight heuristic — does NOT require the product DB, so fast even on 10k+ SKU stores.
+ *
+ * @param string $query  Raw search query
+ * @return array{reason:string, action:string}|null
+ */
+function shop_to_llm_zero_result_reason(string $query): ?array
+{
+    $q = strtolower(trim($query));
+    $inferred = shop_to_llm_classify_search_intent($q);
+    $bucket = $inferred['bucket'];
+    $matched = $inferred['matched_terms'];
+
+    if ($bucket === 'price_filter') {
+        if (preg_match('/\$?(\d+)/', $q, $priceMatches)) {
+            $price = (int) $priceMatches[1];
+            return [
+                /* translators: %d: price threshold */
+                'reason' => sprintf(__('No product under $%d', 'shop2llm'), $price),
+                'action' => __('Consider adding an entry-level product line or running a discount.', 'shop2llm'),
+            ];
+        }
+        return [
+            'reason' => __('No product matches this price range', 'shop2llm'),
+            'action' => __('Check your pricing — a small discount or sale might help.', 'shop2llm'),
+        ];
+    }
+
+    if ($bucket === 'attribute_filter' && !empty($matched)) {
+        return [
+            /* translators: %s: list of attribute keywords */
+            'reason' => sprintf(__('No product has: %s', 'shop2llm'), implode(', ', $matched)),
+            /* translators: %s: list of attribute keywords */
+            'action' => sprintf(__('Add products with %s or update descriptions to match.', 'shop2llm'), implode('/ ', $matched)),
+        ];
+    }
+
+    if ($bucket === 'category_browse') {
+        return [
+            'reason' => __('Catalog may not be rich enough in this category', 'shop2llm'),
+            'action' => __('Add more products in this category or improve descriptions.', 'shop2llm'),
+        ];
+    }
+
+    return [
+        'reason' => __('Product name or terminology mismatch', 'shop2llm'),
+        'action' => __('Check if your store uses different terms than shoppers search.', 'shop2llm'),
+    ];
+}
+
+// ─── v1.15.0: Per-Page Content Quality Drill-Down (Pro) ────────────────────
+// Sample pages/posts/products and run 5 on-page checks. All local — no LLM
+// calls, fast even on 10k+ SKU stores. Stores transient results with 6-hour TTL
+// so Dashboard renders instantly without re-scanning on every load.
+
+/**
+ * v1.15.0: Run 5 on-page content quality checks against a single post.
+ *
+ * All checks parse HTML locally (DOMDocument when available, regex fallback
+ * otherwise). Returns one score per check plus an overall page score.
+ *
+ * @param int $postId  Post ID
+ * @return array{page:string,permalink:string,title_len:int,meta_desc_len:int,h1_count:int,img_alt_ratio:float,og_present:bool,total:int}
+ */
+function shop_to_llm_audit_single_page(int $postId): array
+{
+    $page = get_the_title($postId);
+    $permalink = get_permalink($postId);
+
+    // 1. Title length (ideal 50-60 chars)
+    $titleLen = (int) mb_strlen((string) get_the_title($postId));
+
+    // 2. Meta description length (ideal 120-160 chars)
+    // Check postmeta first (Yoast/Rank Math), fall back to excerpt
+    $metaDesc = '';
+    $yoast = get_post_meta($postId, '_yoast_wpseo_metadesc', true);
+    $rankMath = get_post_meta($postId, 'rank_math_description', true);
+    if (is_string($yoast) && $yoast !== '') { $metaDesc = $yoast; }
+    elseif (is_string($rankMath) && $rankMath !== '') { $metaDesc = $rankMath; }
+    else { $metaDesc = (string) get_the_excerpt($postId); }
+    $metaDescLen = (int) mb_strlen(wp_strip_all_tags($metaDesc));
+
+    // 3. H1 count (ideal exactly 1)
+    $h1Count = 0;
+    // Raw content — block comments are HTML comments, ignored by DOMDocument lookups
+    $content = (string) get_the_content(null, false, $postId);
+    libxml_use_internal_errors(true);
+    $dom = new \DOMDocument();
+    if ($content !== '' && $dom->loadHTML('<?xml encoding="UTF-8">' . $content)) {
+        $h1Count = $dom->getElementsByTagName('h1')->length;
+    }
+    libxml_clear_errors();
+    $h1Count = (int) $h1Count;
+
+    // 4. Image alt ratio (ideally > 80% of images have non-empty alt)
+    $imgAltRatio = 1.0;
+    if ($content !== '' && $dom->loadHTML('<?xml encoding="UTF-8">' . $content)) {
+        $imgs = $dom->getElementsByTagName('img');
+        $totalImgs = $imgs->length;
+        $withAlt = 0;
+        foreach ($imgs as $img) {
+            $alt = trim((string) $img->getAttribute('alt'));
+            if ($alt !== '') { $withAlt++; }
+        }
+        $imgAltRatio = $totalImgs > 0 ? round($withAlt / $totalImgs, 2) : 1.0;
+    }
+
+    // 5. OG tags present (og:title + og:description — Open Graph)
+    $ogPresent = (bool) get_post_meta($postId, '_yoast_wpseo_opengraph-title', true)
+              || (bool) get_post_meta($postId, 'rank_math_facebook_title', true)
+              || has_post_thumbnail($postId); // Having a featured image is a strong signal of OG intent
+
+    // Overall page score — weighted sum of the 5 checks
+    $pageScore = 0;
+    $pageScore += ($titleLen >= 40 && $titleLen <= 70) ? 20 : (($titleLen >= 20 && $titleLen < 90) ? 10 : 0);
+    $pageScore += ($metaDescLen >= 80 && $metaDescLen <= 200) ? 20 : (($metaDescLen >= 40 && $metaDescLen < 260) ? 10 : 0);
+    $pageScore += ($h1Count === 1) ? 20 : (($h1Count >= 1 && $h1Count <= 3) ? 10 : 0);
+    $pageScore += (int) round($imgAltRatio * 20);
+    $pageScore += $ogPresent ? 20 : 0;
+
+    return [
+        'page' => mb_substr($page, 0, 60),
+        'permalink' => $permalink,
+        'title_len' => $titleLen,
+        'meta_desc_len' => $metaDescLen,
+        'h1_count' => $h1Count,
+        'img_alt_ratio' => $imgAltRatio,
+        'og_present' => $ogPresent,
+        'total' => $pageScore,
+    ];
+}
+
+/**
+ * v1.15.0: Sample up to N pages/posts/products and run per-page audits.
+ *
+ * Returns cached results (6-hour TTL) under shop_to_llm_content_audit_sample.
+ * Only re-scans when cache misses or admin clicks "Re-Sample Now".
+ *
+ * @param int $sampleSize  10, 25, or 50
+ * @param bool $forceRescan  True = bypass cache and re-scan
+ * @return array{overall:int,items:array<int,array>}
+ */
+function shop_to_llm_get_content_audit_sample(int $sampleSize = 25, bool $forceRescan = false): array
+{
+    $sampleSize = max(10, min(50, $sampleSize));
+    $cacheKey = 'shop_to_llm_content_audit_' . $sampleSize;
+
+    if (!$forceRescan) {
+        $cached = get_transient($cacheKey);
+        if (is_array($cached)) { return $cached; }
+    }
+
+    // Collect candidate post types
+    $postTypes = ['page', 'post'];
+    if (shop_to_llm_has_woocommerce()) { $postTypes[] = 'product'; }
+
+    $sample = get_posts([
+        'post_type' => $postTypes,
+        'post_status' => 'publish',
+        'posts_per_page' => $sampleSize,
+        'orderby' => 'date',
+        'order' => 'DESC',
+        'no_found_rows' => true,
+    ]);
+
+    $items = [];
+    foreach ($sample as $p) {
+        if (!$p instanceof \WP_Post) { continue; }
+        $items[] = shop_to_llm_audit_single_page((int) $p->ID);
+    }
+
+    $overall = !empty($items) ? round(array_sum(array_column($items, 'total')) / count($items)) : 0;
+
+    $result = ['overall' => $overall, 'items' => $items];
+    set_transient($cacheKey, $result, HOUR_IN_SECONDS * 6);
+    return $result;
+}
+
 function shop_to_llm_register_feed_rewrite(): void
 {
-    add_rewrite_rule('^product-feed\.xml$', 'index.php?shop_to_llm_feed=1', 'top');
-    add_rewrite_rule('^products\.xml$', 'index.php?shop_to_llm_feed=1', 'top');
+    add_rewrite_rule('^product-feed\.xml$', 'index.php?shop_to_llm_feed=xml', 'top');
+    add_rewrite_rule('^products\.xml$', 'index.php?shop_to_llm_feed=xml', 'top');
+    // v1.16.0: JSON feed formats — generic + OpenAI commerce spec.
+    add_rewrite_rule('^product-feed\.json$', 'index.php?shop_to_llm_feed=json', 'top');
+    add_rewrite_rule('^openai-feed\.json$', 'index.php?shop_to_llm_feed=openai', 'top');
 }
 add_action('init', 'shop_to_llm_register_feed_rewrite');
 
@@ -6709,8 +8011,13 @@ add_filter('query_vars', function (array $vars): array {
 });
 
 add_action('template_redirect', function () {
-    if (get_query_var('shop_to_llm_feed')) {
+    $feedType = get_query_var('shop_to_llm_feed');
+    if ($feedType === 'xml') {
         shop_to_llm_product_feed_xml();
+    } elseif ($feedType === 'json') {
+        shop_to_llm_product_feed_json();
+    } elseif ($feedType === 'openai') {
+        shop_to_llm_product_feed_openai();
     }
 });
 
@@ -7176,6 +8483,34 @@ function shop_to_llm_markdown_negotiate(): void
     shop_to_llm_output_markdown_for_post($post);
 }
 add_action('template_redirect', 'shop_to_llm_markdown_negotiate', 0);
+
+/**
+ * v1.11.0: Emit <link rel="alternate" type="text/markdown" href="..."> on
+ * singular pages so AI crawlers that don't send Accept: text/markdown can
+ * still discover the Markdown mirror via the standard HTML link mechanism.
+ *
+ * Uses the same eligibility checks as shop_to_llm_markdown_negotiate() —
+ * only published, non-password-protected singular posts of registered types.
+ */
+function shop_to_llm_markdown_rel_alternate(): void
+{
+    if (is_admin() || (defined('REST_REQUEST') && REST_REQUEST) || wp_doing_cron() || is_feed()) {
+        return;
+    }
+    if (!is_singular()) {
+        return;
+    }
+    $post = get_queried_object();
+    if (!$post instanceof \WP_Post || !in_array($post->post_type, shop_to_llm_markdown_post_types(), true)) {
+        return;
+    }
+    // v1.8.0: password-protected content never mirrors to AI agents.
+    if (post_password_required($post)) {
+        return;
+    }
+    $markdownUrl = rtrim((string) get_permalink($post->ID), '/') . '.md';
+    echo '<link rel="alternate" type="text/markdown" href="' . esc_url($markdownUrl) . '">' . "\n";
+}
 
 // ─── AI Crawler Activity Monitor (Feature Anchor) ─────────────────────
 

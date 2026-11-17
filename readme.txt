@@ -4,7 +4,7 @@ Tags: llms, ai-visibility, chatgpt, mcp, aeo
 Requires at least: 6.0
 Tested up to: 7.1
 Requires PHP: 8.2
-Stable tag: 1.10.1
+Stable tag: 1.15.1
 License: GPL-2.0+
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -173,6 +173,15 @@ Yes. Shop2LLM auto-detects SEO plugins (Yoast, Rank Math, AIOSEO, SEOPress) and 
 3. AI Traffic Monitor — crawler analytics across 81 AI bots and AI search activity
 
 == Changelog ==
+
+= 1.15.1 =
+* Fix: admin dashboard JavaScript error on every page load that blocked interactive buttons
+* Fix: Content Quality audit no longer stops the Pro dashboard, and JSON product feeds now serve correctly when the Pro extension is active
+
+= 1.15.0 =
+* New: AI Mention Monitoring (Pro) — weekly checks of whether ChatGPT, Claude, Perplexity and Gemini mention your store, with per-platform rates and trends
+* New: Per-Page Content Quality audit (Pro) and AI Search Intent Insights (Pro) — on-page scores with fix guidance, plus what shoppers ask and which searches find nothing
+* New: Bring-Your-Own-Key AI provider setting and two additional product feed formats (generic JSON and OpenAI commerce spec)
 
 = 1.10.1 =
 * New: Self-hosted update channel — GitHub-channel zips check shop2llm.com for updates (site URL and plugin/WP/PHP versions are sent with each check and disclosed on shop2llm.com/install). The wordpress.org package contains no update-check or telemetry code: wordpress.org installs keep using the official update channel exactly as before
